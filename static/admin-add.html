@@ -3,46 +3,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>题库检索</title>
+    <title>添加题目</title>
     <link rel="stylesheet" href="https://cdn.staticfile.net/twitter-bootstrap/5.3.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.staticfile.net/font-awesome/4.7.0/css/font-awesome.css">
     <link rel="stylesheet" href="css/theme-switch.css">
     <style>
         body {
             padding-top: 4.5rem;
-        }
-
-        #search-form button {
-            margin-top: calc(1.5em + 0.25rem);
-            min-width: 96px;
-        }
-
-        #search-form #subject-select {
-            min-width: 256px;
-        }
-
-        @media (max-width: 767px) {
-            #search-form button {
-                margin-top: 0.5rem;
-            }
-
-            .item-btn-group button {
-                flex-grow: 1;
-            }
-        }
-
-        @media (min-width: 768px) {
-            .item-btn-group {
-                flex-direction: column;
-            }
-        }
-
-        .item-btn-group button {
-            min-width: 5em;
-        }
-
-        .cursor-pointer {
-            cursor: pointer;
         }
 
         .navbar .dropdown-toggle::after {
@@ -108,10 +74,10 @@
         <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav me-auto mb-2 mb-md-0">
                 <li class="nav-item">
-                    <a class="nav-link active" href="#">题库检索</a>
+                    <a class="nav-link" href="admin-search.html">题库检索</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="admin-add.html">题目添加</a>
+                    <a class="nav-link active" href="#">题目添加</a>
                 </li>
             </ul>
             <div class="d-flex align-items-center">
@@ -133,68 +99,94 @@
 
 <!--正文-->
 <div class="container">
-    <!--搜索-->
-    <form id="search-form">
-        <div class="d-grid gap-2 d-md-flex justify-content-md-center mb-3">
-            <div class="flex-grow-1">
-                <label for="title-input" class="mb-1">关键词</label>
-                <input type="text" class="form-control" id="title-input">
+    <form id="add-form" class="d-flex flex-column">
+        <div class="mb-3">
+            <label class="form-label h4">题型</label>
+            <div class="form-check">
+                <input type="radio" name="radios" class="form-check-input" id="choice-radio" checked>
+                <label class="form-check-label" for="choice-radio">单选题</label>
             </div>
-            <div>
-                <label for="subject-select" class="mb-1">科目</label>
-                <select class="form-select" id="subject-select">
-                    <option value="任意" selected>任意</option>
-                    <option value="数学Ⅰ">数学Ⅰ</option>
-                    <option value="数学Ⅱ">数学Ⅱ</option>
-                    <option value="政治">政治</option>
-                    <option value="计算机学科专业基础综合">计算机学科专业基础综合</option>
-                </select>
+            <div class="mb-3 form-check">
+                <input type="radio" name="radios" class="form-check-input" id="blank-radio">
+                <label class="form-check-label" for="blank-radio">填空题</label>
             </div>
-            <button type="submit" class="btn btn-primary px-3" id="search-btn1">检索</button>
+        </div>
+        <div class="mb-4">
+            <label for="question-area" class="form-label h4">题目</label>
+            <textarea id="question-area" class="form-control" style="height: 192px" maxlength="2000"></textarea>
+        </div>
+        <div id="choices-input" class="mb-3">
+            <label class="form-label h4">选项</label>
+            <div class="input-group mb-3">
+                <span class="input-group-text" id="basic-addon1">A</span>
+                <input type="text" id="selection-a" class="form-control" aria-label="" aria-describedby="basic-addon1" maxlength="100">
+            </div>
+            <div class="input-group mb-3">
+                <span class="input-group-text" id="basic-addon2">B</span>
+                <input type="text" id="selection-b" class="form-control" aria-label="" aria-describedby="basic-addon2" maxlength="100">
+            </div>
+            <div class="input-group mb-3">
+                <span class="input-group-text" id="basic-addon3">C</span>
+                <input type="text" id="selection-c" class="form-control" aria-label="" aria-describedby="basic-addon3" maxlength="100">
+            </div>
+            <div class="input-group mb-3">
+                <span class="input-group-text" id="basic-addon4">D</span>
+                <input type="text" id="selection-d" class="form-control" aria-label="" aria-describedby="basic-addon4" maxlength="100">
+            </div>
+        </div>
+        <div id="answers-input" class="mb-4 visually-hidden">
+            <label class="h4 form-label">答案<button id="add-answer-btn" class="btn btn-outline-primary ms-2">添加</button></label>
+            <div id="answers" class="d-flex flex-column gap-3"></div>
+        </div>
+        <div class="mb-4">
+            <label class="h4 form-label">图片<button id="resolve-btn" class="btn btn-outline-primary ms-2">解析占位符</button></label>
+            <div id="imgs" class="d-flex flex-column gap-3">
+                <div class="d-flex gap-2 align-items-center">
+                   <label>img1</label>
+                   <input type="file" class="form-control" accept="image/png">
+                </div>
+            </div>
+        </div>
+        <div class="mb-4">
+            <input type="submit" value="添加题目！" class="btn btn-primary text-nowrap" id="submit-btn">
         </div>
     </form>
-    <hr>
-    <!--检索结果-->
-    <p class="mx-1" id="result-p">共114514条结果，正在显示1~10条</p>
-    <ul class="list-group" id="result-list">
-        <li class="list-group-item list-group-item-action">
-            <div class="d-grid gap-2 d-md-flex my-2">
-                <div class="flex-grow-1 cursor-pointer">
-                    <p>
-                        测试题目This is a test question测试题目This is a test question测试题目This is a test question测试题目This is a test question测试题目This is a test question测试题目This is a test question测试题目This is a test question测试题目This is a test question测试题目This is a test question测试题目This is a test question
-                    </p>
-                    <p class="small mb-0">QID：1919810</p>
-                    <p class="small mb-2">科目：计算机学科专业基础综合</p>
-                </div>
-                <div class="d-flex gap-2 justify-content-center item-btn-group">
-                    <button type="button" class="btn btn-outline-primary text-nowrap">修改</button>
-                    <button type="button" class="btn btn-outline-danger text-nowrap">删除</button>
-                </div>
+</div>
+
+<!-- modal -->
+<div class="modal fade" id="err-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">错误</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-        </li>
-        <li class="list-group-item list-group-item-action">
-            <div class="d-grid gap-2 d-md-flex my-2">
-                <div class="flex-grow-1 cursor-pointer">
-                    <p>
-                        测试题目This is a test question测试题目This is a test question测试题目This is a test question测试题目This is a test question测试题目This is a test question测试题目This is a test question测试题目This is a test question测试题目This is a test question测试题目This is a test question测试题目This is a test question
-                    </p>
-                    <p class="small mb-0">QID：1919811</p>
-                    <p class="small mb-2">科目：数学Ⅱ</p>
-                </div>
-                <div class="d-flex gap-2 justify-content-center item-btn-group">
-                    <button type="button" class="btn btn-outline-primary text-nowrap">修改</button>
-                    <button type="button" class="btn btn-outline-danger text-nowrap">删除</button>
-                </div>
+            <div class="modal-body">
+                <span id="err-text"></span>
             </div>
-        </li>
-    </ul>
-    <!--分页器-->
-    <div class="mt-3 d-flex justify-content-center">
-        <ul class="pagination" id="pagination"></ul>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="ok-modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">上传成功</h4>
+                <button type="button" class="btn-close" id="close-ok-btn" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">您已成功上传该题目。</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="back-btn" data-bs-dismiss="modal">返回题库</button>
+                <button type="button" class="btn btn-primary" id="continue-btn" data-bs-dismiss="modal">继续上传</button>
+            </div>
+        </div>
     </div>
 </div>
 
 <script src="https://cdn.staticfile.net/twitter-bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
-<script src="js/admin-search.js"></script>
+<script src="js/admin-add.js"></script>
 </body>
 </html>
