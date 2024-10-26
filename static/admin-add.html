@@ -100,38 +100,72 @@
 <!--正文-->
 <div class="container">
     <form id="add-form" class="d-flex flex-column">
-        <div class="mb-3">
-            <label class="form-label h4">题型</label>
-            <div class="form-check">
-                <input type="radio" name="radios" class="form-check-input" id="choice-radio" checked>
-                <label class="form-check-label" for="choice-radio">单选题</label>
-            </div>
-            <div class="mb-3 form-check">
-                <input type="radio" name="radios" class="form-check-input" id="blank-radio">
-                <label class="form-check-label" for="blank-radio">填空题</label>
-            </div>
+        <div class="mb-4">
+            <label for="subject-select" class="form-label h4">科目</label>
+            <select class="form-select" id="subject-select">
+                <option value="数学Ⅰ" selected>数学Ⅰ</option>
+                <option value="数学Ⅱ">数学Ⅱ</option>
+                <option value="政治">政治</option>
+                <option value="计算机学科专业基础综合">计算机学科专业基础综合</option>
+            </select>
         </div>
         <div class="mb-4">
             <label for="question-area" class="form-label h4">题目</label>
             <textarea id="question-area" class="form-control" style="height: 192px" maxlength="2000"></textarea>
         </div>
-        <div id="choices-input" class="mb-3">
-            <label class="form-label h4">选项</label>
-            <div class="input-group mb-3">
-                <span class="input-group-text" id="basic-addon1">A</span>
-                <input type="text" id="selection-a" class="form-control" aria-label="" aria-describedby="basic-addon1" maxlength="100">
+        <div class="mb-4">
+            <label class="form-label h4">题型</label>
+            <div class='d-flex gap-4'>
+                <div class="form-check">
+                    <input type="radio" name="radios" class="form-check-input" id="choice-radio" checked>
+                    <label class="form-check-label" for="choice-radio">单选题</label>
+                </div>
+                <div class="form-check">
+                    <input type="radio" name="radios" class="form-check-input" id="blank-radio">
+                    <label class="form-check-label" for="blank-radio">填空题</label>
+                </div>
             </div>
-            <div class="input-group mb-3">
-                <span class="input-group-text" id="basic-addon2">B</span>
-                <input type="text" id="selection-b" class="form-control" aria-label="" aria-describedby="basic-addon2" maxlength="100">
+        </div>
+        <div id="choices-input">
+            <div class="mb-4">
+                <label class="form-label h4">选项</label>
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon1">A</span>
+                    <input type="text" id="selection-a" class="form-control" aria-label="" aria-describedby="basic-addon1" maxlength="100">
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon2">B</span>
+                    <input type="text" id="selection-b" class="form-control" aria-label="" aria-describedby="basic-addon2" maxlength="100">
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon3">C</span>
+                    <input type="text" id="selection-c" class="form-control" aria-label="" aria-describedby="basic-addon3" maxlength="100">
+                </div>
+                <div class="input-group">
+                    <span class="input-group-text" id="basic-addon4">D</span>
+                    <input type="text" id="selection-d" class="form-control" aria-label="" aria-describedby="basic-addon4" maxlength="100">
+                </div>
             </div>
-            <div class="input-group mb-3">
-                <span class="input-group-text" id="basic-addon3">C</span>
-                <input type="text" id="selection-c" class="form-control" aria-label="" aria-describedby="basic-addon3" maxlength="100">
-            </div>
-            <div class="input-group mb-3">
-                <span class="input-group-text" id="basic-addon4">D</span>
-                <input type="text" id="selection-d" class="form-control" aria-label="" aria-describedby="basic-addon4" maxlength="100">
+            <div class="mb-4">
+                <label class="form-label h4">答案</label>
+                <div class='d-flex gap-4'>
+                    <div class="form-check">
+                        <input type="radio" name="radios1" class="form-check-input" id="selection-a-radio" checked>
+                        <label class="form-check-label" for="selection-a-radio">A</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="radio" name="radios1" class="form-check-input" id="selection-b-radio">
+                        <label class="form-check-label" for="selection-b-radio">B</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="radio" name="radios1" class="form-check-input" id="selection-c-radio">
+                        <label class="form-check-label" for="selection-c-radio">C</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="radio" name="radios1" class="form-check-input" id="selection-d-radio">
+                        <label class="form-check-label" for="selection-d-radio">D</label>
+                    </div>
+                </div>
             </div>
         </div>
         <div id="answers-input" class="mb-4 visually-hidden">
@@ -140,12 +174,7 @@
         </div>
         <div class="mb-4">
             <label class="h4 form-label">图片<button id="resolve-btn" class="btn btn-outline-primary ms-2">解析占位符</button></label>
-            <div id="imgs" class="d-flex flex-column gap-3">
-                <div class="d-flex gap-2 align-items-center">
-                   <label>img1</label>
-                   <input type="file" class="form-control" accept="image/png">
-                </div>
-            </div>
+            <div id="imgs" class="d-flex flex-column gap-3"></div>
         </div>
         <div class="mb-4">
             <input type="submit" value="添加题目！" class="btn btn-primary text-nowrap" id="submit-btn">
