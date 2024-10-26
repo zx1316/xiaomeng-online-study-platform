@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>添加题目 · 小萌在线学习平台</title>
+    <title>题目添加 · 小萌在线学习平台</title>
     <link rel="stylesheet" href="https://cdn.staticfile.net/twitter-bootstrap/5.3.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="css/theme-switch.css">
     <style>
@@ -77,7 +77,7 @@
                     <a class="nav-link" href="admin-search.html">题库检索</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link active" href="#">题目添加</a>
+                    <a class="nav-link active" id="current-nav" href="#">题目添加</a>
                 </li>
             </ul>
             <div class="d-flex align-items-center">
@@ -206,7 +206,9 @@
                 <h4 class="modal-title">上传成功</h4>
                 <button type="button" class="btn-close" id="close-ok-btn" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">您已成功上传该题目。</div>
+            <div class="modal-body">
+                <span id="ok-text"></span>
+            </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="back-btn" data-bs-dismiss="modal">返回检索页面</button>
                 <button type="button" class="btn btn-primary" id="continue-btn" data-bs-dismiss="modal">继续上传</button>

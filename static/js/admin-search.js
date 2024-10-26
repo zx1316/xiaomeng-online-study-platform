@@ -1,7 +1,7 @@
 let currentPage = 1, totalPage = 0;
 let keywordStr = '', subjectIndex = 0;
 let searchResult
-const re = /\$\$\$.+?@@@/g
+const re = /%%%.+?@@@/g
 
 document.addEventListener('DOMContentLoaded', () => {
     const userDropdownTrigger = document.getElementById('user-dropdown-trigger')
@@ -119,14 +119,45 @@ document.addEventListener('DOMContentLoaded', () => {
     })
 
 
-    // 删除题目并二次确认
     resultList.addEventListener('click', (e) => {
         const target = e.target;
-        if (target.tagName === 'BUTTON' && target.classList.contains('btn-outline-danger')) {
-            const deleteQidSpan = document.getElementById('delete-qid-span')
-            deleteQidSpan.innerText = target.parentNode.parentNode.querySelector('.cursor-pointer').querySelector('.mb-0').innerHTML.substring(4)
-            const modal = new bootstrap.Modal(document.getElementById('warning-modal'))
-            modal.show()
+        if (target.tagName === 'BUTTON') {
+            const qid = target.parentNode.parentNode.querySelector('.cursor-pointer').querySelector('.mb-0').innerHTML.substring(4)
+            if (target.classList.contains('btn-outline-danger')) {
+                // 删除题目并二次确认
+                document.getElementById('delete-qid-span').innerText = qid
+                new bootstrap.Modal(document.getElementById('warning-modal')).show()
+            } else {
+                // 修改题目
+                const qidNum = Number(qid)
+
+                for (let obj of searchResult) {
+                    if (obj.Qid === qidNum) {
+                        sessionStorage.setItem('Qid', qid);
+                        sessionStorage.setItem('Subject', obj.Subject)
+                        sessionStorage.setItem('Question', obj.Question)
+                        sessionStorage.setItem('SelectionA', obj.SelectionA === null ? '' : obj.SelectionA)
+                        sessionStorage.setItem('SelectionB', obj.SelectionB === null ? '' : obj.SelectionB)
+                        sessionStorage.setItem('SelectionC', obj.SelectionC === null ? '' : obj.SelectionC)
+                        sessionStorage.setItem('SelectionD', obj.SelectionD === null ? '' : obj.SelectionD)
+                        sessionStorage.setItem('AnswerCount', obj.Answer.length)
+                        obj.Answer.forEach((item, index) => {
+                            sessionStorage.setItem('Answer' + index, item)
+                        })
+                        break
+                    }
+                }
+                // sessionStorage.setItem('Qid', '114514');
+                // sessionStorage.setItem('Subject', '数学Ⅱ')
+                // sessionStorage.setItem('Question', 'shm是（）的狗')
+                // sessionStorage.setItem('SelectionA', '这是A选项%%%12345678@@@')
+                // sessionStorage.setItem('SelectionB', 'BBB%%%1234567@@@')
+                // sessionStorage.setItem('SelectionC', 'CCC%%%123456@@@')
+                // sessionStorage.setItem('SelectionD', 'DDD%%%12345@@@')
+                // sessionStorage.setItem('AnswerCount', '1')
+                // sessionStorage.setItem('Answer0', 'D')
+                location.href = 'admin-add.html?update=1'
+            }
         }
     })
 

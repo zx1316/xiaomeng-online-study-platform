@@ -1,5 +1,6 @@
-const re = /\$\$\$.+?@@@/g
+const re = /%%%.+?@@@/g
 
+// todo: 限制答案数量和图片数量？
 document.addEventListener('DOMContentLoaded', () => {
     const userDropdownTrigger = document.getElementById('user-dropdown-trigger')
     const userDropdownMenu = document.getElementById('user-dropdown-menu')
@@ -21,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectionARadio = document.getElementById('selection-a-radio')
     const selectionBRadio = document.getElementById('selection-b-radio')
     const selectionCRadio = document.getElementById('selection-c-radio')
+    const selectionDRadio = document.getElementById('selection-d-radio')
 
     const resolveBtn = document.getElementById('resolve-btn')
     const addAnswerBtn = document.getElementById('add-answer-btn')
@@ -32,32 +34,52 @@ document.addEventListener('DOMContentLoaded', () => {
     const backBtn = document.getElementById('back-btn')
     const submitBtn = document.getElementById('submit-btn')
 
+    const isUpdate = new URLSearchParams(window.location.search).get('update') !== null;
+    const currentNav = document.getElementById('current-nav')
+    const imgNameMap = new Map();
+
 
     // 获取所有的占位符
-    function resolveImg() {
-        let arr = questionArea.value.match(re)
+    function resolveImg1(str1, str2, str3, str4, str5) {
+        let arr = str1.match(re)
         if (arr === null) {
             arr = []
         }
-        let arr1 = selectionA.value.match(re)
+        let arr1 = str2.match(re)
         if (arr1 !== null) {
             arr = arr.concat(arr1)
         }
-        arr1 = selectionB.value.match(re)
+        arr1 = str3.match(re)
         if (arr1 !== null) {
             arr = arr.concat(arr1)
         }
-        arr1 = selectionC.value.match(re)
+        arr1 = str4.match(re)
         if (arr1 !== null) {
             arr = arr.concat(arr1)
         }
-        arr1 = selectionD.value.match(re)
+        arr1 = str5.match(re)
         if (arr1 !== null) {
             arr = arr.concat(arr1)
         }
-        arr = arr.map((str) => str.substring(3, str.length - 3))                              // 干掉开头结尾的字符
+        arr = arr.map((str) => str.substring(3, str.length - 3))                             // 干掉开头结尾的字符
             .filter((item, index, arr) => arr.indexOf(item) === index)      // 去重
         return arr
+    }
+
+    function resolveImg() {
+        let arr
+        if (choiceRadio.checked) {
+            arr = resolveImg1(questionArea.value, selectionA.value, selectionB.value, selectionC.value, selectionD.value)
+        } else {
+            arr = resolveImg1(questionArea.value, '', '', '', '')
+        }
+        const arr1 = []
+        arr.forEach((item) => {
+            if (!imgNameMap.has(item)) {
+                arr1.push(item)
+            }
+        })
+        return arr1
     }
 
     function strArrEquals(arr1, arr2) {
@@ -150,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
         arr.forEach((element) => {
             let newElement = document.createElement("div")
             newElement.className = 'd-flex gap-2 align-items-center'
-            newElement.innerHTML = `<label>${element}</label><input type="file" class="form-control" accept="image/png">`
+            newElement.innerHTML = `<label class="text-nowrap" style="max-width: 75%">${element}</label><input type="file" class="form-control" accept="image/png">`
             imgs.appendChild(newElement)
         })
     })
@@ -237,48 +259,105 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
             }
 
+            let questionStr = questionArea.value
+            let selectionAStr = selectionA.value
+            let selectionBStr = selectionB.value
+            let selectionCStr = selectionC.value
+            let selectionDStr = selectionD.value
+
+            if (isUpdate) {
+                // 如果是修改，还原原来没改过的图片名
+                for (const [key, value] of imgNameMap) {
+                    const re1 = new RegExp(`%%%${key}@@@`, 'g')
+                    const replaceStr = `%%%${value}@@@`
+                    questionStr = questionStr.replace(re1, replaceStr)
+                    selectionAStr = selectionAStr.replace(re1, replaceStr)
+                    selectionBStr = selectionBStr.replace(re1, replaceStr)
+                    selectionCStr = selectionCStr.replace(re1, replaceStr)
+                    selectionDStr = selectionDStr.replace(re1, replaceStr)
+                }
+            }
+
             let postBody = {
                 "Subject": subjectSelect.options[subjectSelect.selectedIndex].value,
-                "Question": questionArea.value,
-                "SelectionA": choiceRadio.checked ? selectionA.value : null,
-                "SelectionB": choiceRadio.checked ? selectionB.value : null,
-                "SelectionC": choiceRadio.checked ? selectionC.value : null,
-                "SelectionD": choiceRadio.checked ? selectionD.value : null,
+                "Question": questionStr,
+                "SelectionA": choiceRadio.checked ? selectionAStr : null,
+                "SelectionB": choiceRadio.checked ? selectionBStr : null,
+                "SelectionC": choiceRadio.checked ? selectionCStr : null,
+                "SelectionD": choiceRadio.checked ? selectionDStr : null,
                 "Answer": answerArr
             }
             base64Images.forEach((element) => {
                 postBody[element.name] = element.base64
             })
-            console.log(postBody)
-            fetch('/admin_add', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: postBody
-            })
-                .then(response => {
-                    // 检查响应状态码
-                    if (response.status === 200) {
-                        // 状态码为200时，处理正常情况
-                        return response.text()  // 由于内容为空，这里使用text()方法
-                    } else if (response.status === 400) {
-                        // 状态码为400时，解析JSON错误信息
-                        return response.json().then(data => {
-                            throw new Error(data.Msg)
-                        });
-                    } else {
-                        // 其他状态码，抛出错误
-                        throw new Error('Unexpected status code: ' + response.status)
-                    }
+
+            if (isUpdate) {
+                postBody['Qid'] = Number(sessionStorage.getItem('Qid'))
+                // console.log(postBody)
+                fetch('/admin_update', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: postBody
                 })
-                .then(result => {
-                    const okModal = new bootstrap.Modal(document.getElementById('ok-modal'))
-                    okModal.show()
-                    submitBtn.disabled = false
+                    .then(response => {
+                        // 检查响应状态码
+                        if (response.status === 200) {
+                            // 状态码为200时，处理正常情况
+                            return response.text()  // 由于内容为空，这里使用text()方法
+                        } else if (response.status === 400) {
+                            // 状态码为400时，解析JSON错误信息
+                            return response.json().then(data => {
+                                throw new Error(data.Msg)
+                            });
+                        } else {
+                            // 其他状态码，抛出错误
+                            throw new Error('Unexpected status code: ' + response.status)
+                        }
+                    })
+                    .then(result => {
+                        const okModal = new bootstrap.Modal(document.getElementById('ok-modal'))
+                        document.getElementById('ok-text').innerText = '您已成功修改该题目。'
+                        continueBtn.classList.add('visually-hidden')
+                        okModal.show()
+                        submitBtn.disabled = false
+                    })
+                    .catch(error => {
+                        showErrModal('服务器错误：' + error.message)
+                        submitBtn.disabled = false
+                    })
+            } else {
+                fetch('/admin_add', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: postBody
                 })
-                .catch(error => {
-                    showErrModal('服务器错误：' + error.message)
-                    submitBtn.disabled = false
-                })
+                    .then(response => {
+                        // 检查响应状态码
+                        if (response.status === 200) {
+                            // 状态码为200时，处理正常情况
+                            return response.text()  // 由于内容为空，这里使用text()方法
+                        } else if (response.status === 400) {
+                            // 状态码为400时，解析JSON错误信息
+                            return response.json().then(data => {
+                                throw new Error(data.Msg)
+                            });
+                        } else {
+                            // 其他状态码，抛出错误
+                            throw new Error('Unexpected status code: ' + response.status)
+                        }
+                    })
+                    .then(result => {
+                        const okModal = new bootstrap.Modal(document.getElementById('ok-modal'))
+                        document.getElementById('ok-text').innerText = '您已成功添加该题目。'
+                        continueBtn.classList.remove('visually-hidden')
+                        okModal.show()
+                        submitBtn.disabled = false
+                    })
+                    .catch(error => {
+                        showErrModal('服务器错误：' + error.message)
+                        submitBtn.disabled = false
+                    })
+            }
         }
 
         // 开始图片转换
@@ -301,4 +380,64 @@ document.addEventListener('DOMContentLoaded', () => {
             })
         }
     })
+
+    if (isUpdate) {
+        // 设置界面
+        submitBtn.value = '更新题目！'
+        currentNav.innerText = '题目更新'
+        document.title = '题目更新 · 小萌在线学习平台';
+
+        // 读取从上个页面过来的数据，设置表单
+        let questionStr = sessionStorage.getItem('Question')
+        let selectionAStr = sessionStorage.getItem('SelectionA')
+        let selectionBStr = sessionStorage.getItem('SelectionB')
+        let selectionCStr = sessionStorage.getItem('SelectionC')
+        let selectionDStr = sessionStorage.getItem('SelectionD')
+
+        const arr = resolveImg1(questionStr, selectionAStr, selectionBStr, selectionCStr, selectionDStr)
+        // 替换md5图片名为原图x
+        arr.forEach((item, index) => {
+            imgNameMap.set('原图' + index, item)
+            const re1 = new RegExp(`%%%${item}@@@`, 'g')
+            const replaceStr = `%%%原图${index}@@@`
+            questionStr = questionStr.replace(re1, replaceStr)
+            selectionAStr = selectionAStr.replace(re1, replaceStr)
+            selectionBStr = selectionBStr.replace(re1, replaceStr)
+            selectionCStr = selectionCStr.replace(re1, replaceStr)
+            selectionDStr = selectionDStr.replace(re1, replaceStr)
+        })
+        questionArea.value = questionStr
+        selectionA.value = selectionAStr
+        selectionB.value = selectionBStr
+        selectionC.value = selectionCStr
+        selectionD.value = selectionDStr
+        subjectSelect.value = sessionStorage.getItem('Subject')
+
+        if (selectionAStr === '') {
+            // 填空题
+            let answerCount = Number(sessionStorage.getItem('AnswerCount'))
+            for (let i = 0; i < answerCount; i++) {
+                const newElement = document.createElement("div")
+                newElement.classList.add('d-flex')
+                newElement.innerHTML = '<input type="text" class="form-control flex-grow-1" aria-label="" maxlength="100"><button class="btn btn-outline-danger ms-2 text-nowrap">删除</button>'
+                newElement.querySelector('input').value = sessionStorage.getItem('Answer' + i)
+                answers.appendChild(newElement)
+            }
+            blankRadio.checked = true
+            choicesInput.classList.add('visually-hidden')
+            answersInput.classList.remove('visually-hidden')
+        } else {
+            // 选择题
+            const answer = sessionStorage.getItem('Answer0')
+            if (answer === 'A') {
+                selectionARadio.checked = true
+            } else if (answer === 'B') {
+                selectionBRadio.checked = true
+            } else if (answer === 'C') {
+                selectionCRadio.checked = true
+            } else {
+                selectionDRadio.checked = true
+            }
+        }
+    }
 })
