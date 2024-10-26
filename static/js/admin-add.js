@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const continueBtn = document.getElementById('continue-btn')
     const closeOkBtn = document.getElementById('close-ok-btn')
     const backBtn = document.getElementById('back-btn')
+    const submitBtn = document.getElementById('submit-btn')
 
 
     // 获取所有的占位符
@@ -281,13 +282,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(result => {
                     const okModal = new bootstrap.Modal(document.getElementById('ok-modal'))
                     okModal.show()
+                    submitBtn.disabled = false
                 })
                 .catch(error => {
                     showErrModal('服务器错误：' + error.message)
+                    submitBtn.disabled = false
                 })
         }
 
         // 开始图片转换
+        submitBtn.disabled = true
         if (imgsChildDivs.length === 0) {
             postToServer()
         } else {
