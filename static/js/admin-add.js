@@ -1,4 +1,4 @@
-const re = /\$\$\$.+?@@@/g;
+const re = /\$\$\$.+?@@@/g
 
 document.addEventListener('DOMContentLoaded', () => {
     const userDropdownTrigger = document.getElementById('user-dropdown-trigger')
@@ -81,15 +81,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 重置表单
     function resetForm() {
-        const imgsChildDivs = imgs.querySelectorAll('div');
-        imgsChildDivs.forEach((element) => {
-            element.remove()
-        })
-        const answersChildDivs = answers.querySelectorAll('div');
-        answersChildDivs.forEach((element) => {
-            element.remove();
-        })
         form.reset()
+        imgs.innerHTML = ''
+        answers.innerHTML = ''
         choicesInput.classList.remove('visually-hidden')
         answersInput.classList.add('visually-hidden')
     }
@@ -151,10 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return
         }
 
-        const imgsChildDivs = imgs.querySelectorAll('div');
-        imgsChildDivs.forEach((element) => {
-            element.remove()
-        })
+        imgs.innerHTML = ''
 
         arr.forEach((element) => {
             let newElement = document.createElement("div")
