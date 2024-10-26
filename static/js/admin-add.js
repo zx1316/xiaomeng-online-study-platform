@@ -1,5 +1,11 @@
 const re = /%%%.+?@@@/g
 
+// 悬浮提示的初始化代码
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+})
+
 // todo: 限制答案数量和图片数量？
 document.addEventListener('DOMContentLoaded', () => {
     const userDropdownTrigger = document.getElementById('user-dropdown-trigger')
@@ -399,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
         arr.forEach((item, index) => {
             imgNameMap.set('原图' + index, item)
             const re1 = new RegExp(`%%%${item}@@@`, 'g')
-            const replaceStr = `%%%原图${index}@@@`
+            const replaceStr = `%%%原有图${index}@@@`
             questionStr = questionStr.replace(re1, replaceStr)
             selectionAStr = selectionAStr.replace(re1, replaceStr)
             selectionBStr = selectionBStr.replace(re1, replaceStr)
