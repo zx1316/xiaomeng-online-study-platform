@@ -1,6 +1,4 @@
-let currentPage = 1, totalPage = 0;
-let keywordStr = '', subjectIndex = 0;
-let searchResult
+let searchResult = []
 const re = /%%%.+?@@@/g
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -25,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function addPageNumItem(begin, end) {
         for (let i = begin; i <= end; i++) {
             let li = createPageItem(i)
+            const currentPage = parseInt(sessionStorage.getItem('currentPage'))
             if (currentPage === i) {
                 li.classList.add('active')
             }
@@ -33,31 +32,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
      function setPaginationStyle() {
-        if (totalPage <= 1) {
-            pagination.classList.add('visually-hidden')
-        } else {
-            pagination.innerHTML = '';
-            if (totalPage <= 5) {
-                addPageNumItem(1, totalPage)
-            } else {
-                let li = createPageItem('«')
-                pagination.appendChild(li)
-                li = createPageItem('‹')
-                pagination.appendChild(li)
-                if (currentPage === 1 || currentPage === 2) {
-                    addPageNumItem(1, 5)
-                } else if (currentPage === totalPage - 1 || currentPage === totalPage) {
-                    addPageNumItem(totalPage - 4, totalPage)
-                } else {
-                    addPageNumItem(currentPage - 2, currentPage + 2)
-                }
-                li = createPageItem('›')
-                pagination.appendChild(li)
-                li = createPageItem('»')
-                pagination.appendChild(li)
-            }
-            pagination.classList.remove('visually-hidden')
-        }
+         const currentPage = parseInt(sessionStorage.getItem('currentPage'))
+         const totalPage = parseInt(sessionStorage.getItem('totalPage'))
+         if (totalPage <= 1) {
+             pagination.classList.add('visually-hidden')
+         } else {
+             pagination.innerHTML = '';
+             if (totalPage <= 5) {
+                 addPageNumItem(1, totalPage)
+             } else {
+                 let li = createPageItem('«')
+                 pagination.appendChild(li)
+                 li = createPageItem('‹')
+                 pagination.appendChild(li)
+                 if (currentPage === 1 || currentPage === 2) {
+                     addPageNumItem(1, 5)
+                 } else if (currentPage === totalPage - 1 || currentPage === totalPage) {
+                     addPageNumItem(totalPage - 4, totalPage)
+                 } else {
+                     addPageNumItem(currentPage - 2, currentPage + 2)
+                 }
+                 li = createPageItem('›')
+                 pagination.appendChild(li)
+                 li = createPageItem('»')
+                 pagination.appendChild(li)
+             }
+             pagination.classList.remove('visually-hidden')
+         }
     }
 
     function writeResultCount(total) {
@@ -66,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (total <= 10) {
             resultP.innerHTML = `共${total}条结果。`
         } else {
+            const currentPage = parseInt(sessionStorage.getItem('currentPage'))
             resultP.innerHTML = `共${total}条结果，正在显示第${10 * currentPage - 9}-${Math.min(10 * currentPage, total)}条。`
         }
     }
@@ -99,12 +101,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setUI(result) {
-        totalPage = Math.ceil(result.Total / 10)
+        sessionStorage.setItem('totalPage', Math.ceil(result.Total / 10).toString())
         writeJsonToList(result.Questions)
         setPaginationStyle()
         writeResultCount(result.Total)
-        keywordInput.value = keywordStr
-        subjectSelect.selectedIndex = subjectIndex
+        keywordInput.value = sessionStorage.getItem('keywordStr')
+        subjectSelect.selectedIndex = parseInt(sessionStorage.getItem('subjectIndex'))
         searchBtn.disabled = false
     }
 
@@ -128,9 +130,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('delete-qid-span').innerText = qid
                 new bootstrap.Modal(document.getElementById('warning-modal')).show()
             } else {
-                // 修改题目
-                const qidNum = Number(qid)
-
+                // 跳转修改题目
+                const qidNum = parseInt(qid)
                 for (let obj of searchResult) {
                     if (obj.Qid === qidNum) {
                         sessionStorage.setItem('Qid', qid);
@@ -147,15 +148,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         break
                     }
                 }
-                // sessionStorage.setItem('Qid', '114514');
-                // sessionStorage.setItem('Subject', '数学Ⅱ')
-                // sessionStorage.setItem('Question', 'shm是（）的狗')
-                // sessionStorage.setItem('SelectionA', '这是A选项%%%12345678@@@')
-                // sessionStorage.setItem('SelectionB', 'BBB%%%1234567@@@')
-                // sessionStorage.setItem('SelectionC', 'CCC%%%123456@@@')
-                // sessionStorage.setItem('SelectionD', 'DDD%%%12345@@@')
-                // sessionStorage.setItem('AnswerCount', '1')
-                // sessionStorage.setItem('Answer0', 'D')
                 location.href = 'admin-add.html?update=1'
             }
         }
@@ -169,11 +161,15 @@ document.addEventListener('DOMContentLoaded', () => {
             body: `{"Qid":${document.getElementById('delete-qid-span').innerText}}`
         })      // 忽略删除接口的返回
         // 视情况调整页号
+        let currentPage = parseInt(sessionStorage.getItem('currentPage'))
         if (searchResult.length <= 1 && currentPage > 1) {
             currentPage--
+            sessionStorage.setItem('currentPage', String(currentPage))
         }
         // 重新拉列表
         searchBtn.disabled = true
+        const keywordStr = sessionStorage.getItem('keywordStr')
+        const subjectIndex = parseInt(sessionStorage.getItem('subjectIndex'))
         fetch('/admin_search', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -187,6 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
     pagination.addEventListener('click', (event) => {
         const target = event.target
         if (target.tagName === 'A' && !target.parentNode.classList.contains('active')) {
+            let currentPage = parseInt(sessionStorage.getItem('currentPage'))
             if (target.textContent === '«') {
                 currentPage = 1
             } else if (target.textContent === '‹') {
@@ -194,11 +191,14 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (target.textContent === '›') {
                 currentPage++
             } else if (target.textContent === '»') {
-                currentPage = totalPage
+                currentPage = parseInt(sessionStorage.getItem('totalPage'))
             } else {
                 currentPage = parseInt(target.textContent)
             }
+            sessionStorage.setItem('currentPage', currentPage.toString())
             searchBtn.disabled = true
+            const keywordStr = sessionStorage.getItem('keywordStr')
+            const subjectIndex = parseInt(sessionStorage.getItem('subjectIndex'))
             fetch('/admin_search', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -213,24 +213,40 @@ document.addEventListener('DOMContentLoaded', () => {
     form.onsubmit = function(event) {
         event.preventDefault()
         searchBtn.disabled = true
-        currentPage = 1
-        keywordStr = keywordInput.value
-        subjectIndex = subjectSelect.selectedIndex
-
+        sessionStorage.setItem('currentPage', '1')
+        sessionStorage.setItem('keywordStr', keywordInput.value)
+        sessionStorage.setItem('subjectIndex', String(subjectSelect.selectedIndex))
         fetch('/admin_search', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: `{"Keyword":"${keywordStr}","Subject":"${subjectSelect.options[subjectIndex].value}","Page":1,"Size":10}`
+            body: `{"Keyword":"${keywordInput.value}","Subject":"${subjectSelect.options[subjectSelect.selectedIndex].value}","Page":1,"Size":10}`
         })
             .then(response => response.json())
             .then(result => setUI(result))
     }
 
+    // 如果没有会话存储，设置默认值
+    if (sessionStorage.getItem('currentPage') === null) {
+        sessionStorage.setItem('currentPage', '1')
+    }
+    if (sessionStorage.getItem('totalPage') === null) {
+        sessionStorage.setItem('totalPage', '0')
+    }
+    if (sessionStorage.getItem('keywordStr') === null) {
+        sessionStorage.setItem('keywordStr', '')
+    }
+    if (sessionStorage.getItem('subjectIndex') === null) {
+        sessionStorage.setItem('subjectIndex', '0')
+    }
+
     // 进来默认先搜索一次
+    const subjectIndex = parseInt(sessionStorage.getItem('subjectIndex'))
+    const keywordStr = sessionStorage.getItem('keywordStr')
+    const currentPage = sessionStorage.getItem('currentPage')
     fetch('/admin_search', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: `{"Subject":"任意","Keyword":"","Page":1,"Size":10}`
+        body: `{"Subject":"${subjectSelect.options[subjectIndex].value}","Keyword":"${keywordStr}","Page":${currentPage},"Size":10}`
     })
         .then(response => response.json())
         .then(result => setUI(result))

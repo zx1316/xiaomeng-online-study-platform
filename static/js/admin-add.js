@@ -298,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
             })
 
             if (isUpdate) {
-                postBody['Qid'] = Number(sessionStorage.getItem('Qid'))
+                postBody['Qid'] = parseInt(sessionStorage.getItem('Qid'))
                 // console.log(postBody)
                 fetch('/admin_update', {
                     method: 'POST',
@@ -389,9 +389,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (isUpdate) {
         // 设置界面
-        submitBtn.value = '更新题目！'
-        currentNav.innerText = '题目更新'
-        document.title = '题目更新 · 小萌在线学习平台';
+        submitBtn.value = '修改题目！'
+        currentNav.innerText = '题目修改'
+        document.title = '题目修改 · 小萌在线学习平台';
 
         // 读取从上个页面过来的数据，设置表单
         let questionStr = sessionStorage.getItem('Question')
@@ -403,7 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const arr = resolveImg1(questionStr, selectionAStr, selectionBStr, selectionCStr, selectionDStr)
         // 替换md5图片名为原图x
         arr.forEach((item, index) => {
-            imgNameMap.set('原图' + index, item)
+            imgNameMap.set(`原有图${index}`, item)
             const re1 = new RegExp(`%%%${item}@@@`, 'g')
             const replaceStr = `%%%原有图${index}@@@`
             questionStr = questionStr.replace(re1, replaceStr)
@@ -421,7 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (selectionAStr === '') {
             // 填空题
-            let answerCount = Number(sessionStorage.getItem('AnswerCount'))
+            let answerCount = parseInt(sessionStorage.getItem('AnswerCount'))
             for (let i = 0; i < answerCount; i++) {
                 const newElement = document.createElement("div")
                 newElement.classList.add('d-flex')
