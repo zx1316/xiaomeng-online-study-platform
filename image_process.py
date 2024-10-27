@@ -1,0 +1,67 @@
+import base64
+import hashlib
+import os
+import re
+
+IMAGE_SAVE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/img/q')
+
+def extract_image_hashes(text):
+    """Extracts MD5 hashed filenames from <img> tags in a text field."""
+    return set(re.findall(r'%%%([^@]+)@@@', text))
+
+
+def save_image(base64_str):
+    try:
+        image_data = base64.b64decode(base64_str)
+    except base64.binascii.Error:
+        return None, "Invalid base64 image encoding"
+    # Verify
+    if image_data[:8] != b'\x89PNG\r\n\x1a\n':
+        return None, "Image must be in PNG format"
+
+    # Create MD5 hash for image name
+    md5_hash = hashlib.md5(image_data).hexdigest()
+    file_name = f"{md5_hash}.png"
+    file_path = os.path.join(IMAGE_SAVE_PATH, file_name)
+
+    with open(file_path, 'wb') as f:
+        f.write(image_data)
+    return file_name, None
+
+
+def process_images_and_text(data, old_data=None):
+    text_fields = ['Question', 'SelectionA', 'SelectionB', 'SelectionC', 'SelectionD']
+    placeholder_pattern = r"%%%(.*?)@@@"
+    updated_image_hashes = set()
+
+    for field in text_fields:
+        if field in data and data[field]:
+            placeholders = set(re.findall(placeholder_pattern, data[field]))
+            # print("pipeigeshu:", len(placeholders))
+            for placeholder in placeholders:
+                image_key = placeholder
+                if image_key not in data:
+                    return None, f"Missing image for placeholder '{image_key}'"
+
+                image_filename, error = save_image(data[image_key])
+                print("image_name:", image_filename)
+                if error:
+                    return None, error
+                img_tag = f'%%%{image_filename}@@@'
+                data[field] = data[field].replace(f"%%%{placeholder}@@@", img_tag)
+                print("question:", data[field])
+                updated_image_hashes.add(image_filename)
+    if old_data:
+        old_image_hashes = set()
+        for field in text_fields:
+            if old_data.get(field):
+                old_image_hashes.update(extract_image_hashes(old_data[field]))
+
+        # Delete images in old_data but not in new_data
+        unused_images = old_image_hashes - updated_image_hashes
+        for image_filename in unused_images:
+            image_path = os.path.join(IMAGE_SAVE_PATH, image_filename)
+            if os.path.exists(image_path):
+                os.remove(image_path)
+
+    return data, None

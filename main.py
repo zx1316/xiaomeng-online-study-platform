@@ -1,218 +1,101 @@
+import json
 import os
-import base64
-import hashlib
 from flask import Flask, redirect, request, url_for, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import func
 from flask_socketio import SocketIO
 from werkzeug.security import generate_password_hash, check_password_hash
-
 from io import BytesIO
-import re
 
+from db_models import *
 
-IMAGE_SAVE_PATH = 'images'
+from image_process import process_images_and_text
+
+IMAGE_SAVE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/img/q')
 os.makedirs(IMAGE_SAVE_PATH, exist_ok=True)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 app.config['STATIC_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///learning_platform.db'
-db = SQLAlchemy(app)
 socketio = SocketIO(app)
+db = SQLAlchemy(app)
+
+first_request_processed = False
 
 
-def extract_image_hashes(text):
-    """Extracts MD5 hashed filenames from <img> tags in a text field."""
-    return set(re.findall(r'<img src="/images/([^"]+)"', text))
-
-
-def save_image(base64_str):
-    try:
-        image_data = base64.b64decode(base64_str)
-    except base64.binascii.Error:
-        return None, "Invalid base64 image encoding"
-    # Verify
-    if image_data[:8] != b'\x89PNG\r\n\x1a\n':
-        return None, "Image must be in PNG format"
-
-    # Create MD5 hash for image name
-    md5_hash = hashlib.md5(image_data).hexdigest()
-    file_name = f"{md5_hash}.png"
-    file_path = os.path.join(IMAGE_SAVE_PATH, file_name)
-
-    with open(file_path, 'wb') as f:
-        f.write(image_data)
-    return file_name, None
-
-
-def process_images_and_text(data, old_data=None):
-    text_fields = ['Question', 'SelectionA', 'SelectionB', 'SelectionC', 'SelectionD']
-    placeholder_pattern = r"\$\$\$(.*?)@@@"
-    updated_image_hashes = set()
-
-    for field in text_fields:
-        if field in data and data[field]:
-            placeholders = set(re.findall(placeholder_pattern, data[field]))
-            # print("pipeigeshu:", len(placeholders))
-            for placeholder in placeholders:
-                image_key = placeholder
-                if image_key not in data:
-                    return None, f"Missing image for placeholder '{image_key}'"
-
-                image_filename, error = save_image(data[image_key])
-                print("image_name:", image_filename)
-                if error:
-                    return None, error
-                img_tag = f'<img src="/images/{image_filename}">'
-                data[field] = data[field].replace(f"$$${placeholder}@@@", img_tag)
-                print("question:", data[field])
-                updated_image_hashes.add(image_filename)
-    if old_data:
-        old_image_hashes = set()
-        for field in text_fields:
-            if old_data.get(field):
-                old_image_hashes.update(extract_image_hashes(old_data[field]))
-
-        # Delete images in old_data but not in new_data
-        unused_images = old_image_hashes - updated_image_hashes
-        for image_filename in unused_images:
-            image_path = os.path.join(IMAGE_SAVE_PATH, image_filename)
-            if os.path.exists(image_path):
-                os.remove(image_path)
-
-    return data, None
-
-
-# --- Database Models ---
-class User(db.Model):
-    Uid = db.Column(db.Integer, primary_key=True)
-    Username = db.Column(db.String(32), nullable=False, unique=True)
-    Password = db.Column(db.String(32), nullable=False)
-    IsAdmin = db.Column(db.Boolean, default=False)
-    LastLoginIn = db.Column(db.DateTime)
-
-
-class Friend(db.Model):
-    Uid1 = db.Column(db.Integer, db.ForeignKey('user.Uid'), primary_key=True)
-    Uid2 = db.Column(db.Integer, db.ForeignKey('user.Uid'), primary_key=True)
-
-
-class Question(db.Model):
-    Qid = db.Column(db.Integer, primary_key=True)
-    Subject = db.Column(db.String(32), nullable=False)
-    Question = db.Column(db.String(8192), nullable=False)
-    SelectionA = db.Column(db.String(256))
-    SelectionB = db.Column(db.String(256))
-    SelectionC = db.Column(db.String(256))
-    SelectionD = db.Column(db.String(256))
-    Answer = db.Column(db.String(1024), nullable=False)
-
-
-class WrongAnswer(db.Model):
-    Uid = db.Column(db.Integer, db.ForeignKey('user.Uid'), primary_key=True)
-    Qid = db.Column(db.Integer, db.ForeignKey('question.Qid'), primary_key=True)
-    WrongAnswer = db.Column(db.String(256))
-    Notes = db.Column(db.String(1024))
-
-
-class math1LearningStatus(db.Model):
-    Uid = db.Column(db.Integer, db.ForeignKey('user.Uid'), primary_key=True)
-    Elo = db.Column(db.Float, default=1000)
-    ExerciseRight = db.Column(db.Integer, default=0)
-    ExerciseTotal = db.Column(db.Integer, default=0)
-    Right = db.Column(db.Integer, default=0)
-    Total = db.Column(db.Integer, default=0)
-
-
-class math2LearningStatus(db.Model):
-    Uid = db.Column(db.Integer, db.ForeignKey('user.Uid'), primary_key=True)
-    Elo = db.Column(db.Float, default=1000)
-    ExerciseRight = db.Column(db.Integer, default=0)
-    ExerciseTotal = db.Column(db.Integer, default=0)
-    Right = db.Column(db.Integer, default=0)
-    Total = db.Column(db.Integer, default=0)
-
-
-class polLearningStatus(db.Model):
-    Uid = db.Column(db.Integer, db.ForeignKey('user.Uid'), primary_key=True)
-    Elo = db.Column(db.Float, default=1000)
-    ExerciseRight = db.Column(db.Integer, default=0)
-    ExerciseTotal = db.Column(db.Integer, default=0)
-    Right = db.Column(db.Integer, default=0)
-    Total = db.Column(db.Integer, default=0)
-
-
-class _408LearningStatus(db.Model):
-    Uid = db.Column(db.Integer, db.ForeignKey('user.Uid'), primary_key=True)
-    Elo = db.Column(db.Float, default=1000)
-    ExerciseRight = db.Column(db.Integer, default=0)
-    ExerciseTotal = db.Column(db.Integer, default=0)
-    Right = db.Column(db.Integer, default=0)
-    Total = db.Column(db.Integer, default=0)
-
-
-@app.before_first_request
+# we use before_request because before_first_request is deprecated
+@app.before_request
 def create_tables():
-    db.create_all()
-
-
-# Serve index page
-@app.route("/")
-def hello():
-    return send_from_directory(app.config['STATIC_FOLDER'], 'admin-add.html')
+    global first_request_processed
+    if not first_request_processed:
+        # 执行首次请求前的操作
+        db.create_all()
+        first_request_processed = True
 
 
 # --- Question Management  ---
 @app.route('/admin_add', methods=['POST'])
-def add_or_update_question():
+def add_question():
     data = request.json
     print(data)
-    if not data.get('Subject') or not data.get('Question') or not data.get('Answer'):
-        return jsonify({"Msg": "Subject, Question are required fields"}), 400
+    if not data.get('Subject') or not data.get('Question') or not data.get('Answer') or not data.get('SelectionA') or not data.get('SelectionB') or not data.get('SelectionC') or not data.get('SelectionD'):
+        return jsonify({"Msg": "Subject, Question, Selections and Answer are required fields"}), 400
 
     processed_data, error = process_images_and_text(data)
     if error:
         return jsonify({"Msg": error}), 400
 
-    if data.get('Qid') is None:  # Adding a new question
-        new_question = Question(
-            Subject=processed_data['Subject'],
-            Question=processed_data['Question'],
-            SelectionA=processed_data.get('SelectionA'),
-            SelectionB=processed_data.get('SelectionB'),
-            SelectionC=processed_data.get('SelectionC'),
-            SelectionD=processed_data.get('SelectionD'),
-            Answer='@#@'.join(processed_data['Answer'])
-        )
-        db.session.add(new_question)
-    else:  # Updating an existing question
-        question = Question.query.filter_by(Qid=data['Qid']).first()
-        if not question:
-            return jsonify({"Msg": "Question not found"}), 400
-        old_data = {
-            "Question": question.Question,
-            "SelectionA": question.SelectionA,
-            "SelectionB": question.SelectionB,
-            "SelectionC": question.SelectionC,
-            "SelectionD": question.SelectionD
-        }
-        processed_data, error = process_images_and_text(data, old_data)
-        if error:
-            return jsonify({"Msg": error}), 400
+    new_question = Question(
+        Subject=processed_data['Subject'],
+        Question=processed_data['Question'],
+        SelectionA=processed_data.get('SelectionA'),
+        SelectionB=processed_data.get('SelectionB'),
+        SelectionC=processed_data.get('SelectionC'),
+        SelectionD=processed_data.get('SelectionD'),
+        Answer=json.dumps(processed_data['Answer'])
+    )
+    db.session.add(new_question)
+    return '', 200
 
-        question.Subject = processed_data['Subject']
-        question.Question = processed_data['Question']
-        question.SelectionA = processed_data.get('SelectionA')
-        question.SelectionB = processed_data.get('SelectionB')
-        question.SelectionC = processed_data.get('SelectionC')
-        question.SelectionD = processed_data.get('SelectionD')
-        question.Answer = '@#@'.join(processed_data['Answer'])
+
+@app.route('/admin_update', methods=['POST'])
+def update_question():
+    data = request.json
+    print(data)
+    if not data.get('Subject') or not data.get('Question') or not data.get('Answer') or not data.get('Qid') or not data.get('SelectionA') or not data.get('SelectionB') or not data.get('SelectionC') or not data.get('SelectionD'):
+        return jsonify({"Msg": "Qid, Subject, Question, Selections and Answer are required fields"}), 400
+
+    processed_data, error = process_images_and_text(data)
+    if error:
+        return jsonify({"Msg": error}), 400
+
+    question = Question.query.filter_by(Qid=data['Qid']).first()
+    if not question:
+        return jsonify({"Msg": "Question not found"}), 400
+    old_data = {
+        "Question": question.Question,
+        "SelectionA": question.SelectionA,
+        "SelectionB": question.SelectionB,
+        "SelectionC": question.SelectionC,
+        "SelectionD": question.SelectionD
+    }
+    processed_data, error = process_images_and_text(data, old_data)
+    if error:
+        return jsonify({"Msg": error}), 400
+
+    question.Subject = processed_data['Subject']
+    question.Question = processed_data['Question']
+    question.SelectionA = processed_data.get('SelectionA')
+    question.SelectionB = processed_data.get('SelectionB')
+    question.SelectionC = processed_data.get('SelectionC')
+    question.SelectionD = processed_data.get('SelectionD')
+    question.Answer = json.dumps(processed_data['Answer'])
 
     db.session.commit()
     return '', 200
 
 
-@app.route('/admin_search', methods=['GET'])
+@app.route('/admin_search', methods=['POST'])
 def search_questions():
     subject = request.args.get('Subject')
     if not subject:
@@ -239,7 +122,7 @@ def search_questions():
             "SelectionB": q.SelectionB,
             "SelectionC": q.SelectionC,
             "SelectionD": q.SelectionD,
-            "Answer": [ans for ans in q.Answer.split('@#@')]
+            "Answer": json.loads(q.Answer)
         } for q in questions
     ]
     return jsonify(result)
@@ -283,7 +166,7 @@ def get_exercise_questions():
             "SelectionB": q.SelectionB,
             "SelectionC": q.SelectionC,
             "SelectionD": q.SelectionD,
-            "Answer": [ans for ans in q.Answer.split('@#@')]
+            "Answer": json.loads(q.Answer)
         } for q in questions
     ]
     return jsonify(result)
@@ -317,10 +200,10 @@ def submit_exercise_results():
         )
         db.session.add(new_wrong)
     learning_status = {
-        '数学Ⅰ': math1LearningStatus,
-        '数学Ⅱ': math2LearningStatus,
-        '政治': polLearningStatus,
-        '计算机学科专业基础综合': _408LearningStatus
+        '数学Ⅰ': Math1LearningStatus,
+        '数学Ⅱ': Math2LearningStatus,
+        '政治': PolLearningStatus,
+        '计算机学科专业基础综合': CS408LearningStatus
     }
     LearningStatus = learning_status.get(subject)
     user_status = LearningStatus.query.filter_by(Uid=uid).first()
@@ -339,5 +222,42 @@ def submit_exercise_results():
     return '', 200
 
 
+# static res
+@app.route('/js/<path:filename>')
+def send_js(filename):
+    return send_from_directory(os.path.join(app.config['STATIC_FOLDER'], 'js'), path=filename)
+
+
+@app.route('/css/<path:filename>')
+def send_css(filename):
+    return send_from_directory(os.path.join(app.config['STATIC_FOLDER'], 'css'), path=filename)
+
+
+@app.route('/img/<path:filename>')
+def send_img(filename):
+    return send_from_directory(os.path.join(app.config['STATIC_FOLDER'], 'img'), path=filename)
+
+# Serve index page
+# Currently we don't have an index so comment the code
+# @app.route("/")
+# def hello():
+#    return send_from_directory(app.config['STATIC_FOLDER'], 'admin-add.html')
+
+
+@app.route('/admin-add.html')
+def admin_add_page():
+    return send_from_directory(app.config['STATIC_FOLDER'], 'admin-add.html')
+
+
+@app.route('/admin-search.html')
+def admin_search_page():
+    return send_from_directory(app.config['STATIC_FOLDER'], 'admin-search.html')
+
+
+@app.route('/admin-preview.html')
+def admin_preview_page():
+    return send_from_directory(app.config['STATIC_FOLDER'], 'admin-preview.html')
+
+
 if __name__ == '__main__':
-    socketio.run(app, host='127.0.0.1', debug=True)
+    socketio.run(app, host='0.0.0.0', debug=True)
