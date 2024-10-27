@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch('/admin_delete', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: `{Qid:${document.getElementById('delete-qid-span').innerText}}`
+            body: `{"Qid":${document.getElementById('delete-qid-span').innerText}}`
         })      // 忽略删除接口的返回
         // 视情况调整页号
         if (searchResult.length <= 1 && currentPage > 1) {
@@ -177,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch('/admin_search', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: `{"Keyword":"${keywordStr}","Subject":"${subjectSelect.options[subjectIndex].value}","Index":${(currentPage - 1) * 10},"Size":10}`
+            body: `{"Keyword":"${keywordStr}","Subject":"${subjectSelect.options[subjectIndex].value}","Page":${currentPage},"Size":10}`
         })
             .then(response => response.json())
             .then(result => setUI(result))
@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fetch('/admin_search', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: `{"Keyword":"${keywordStr}","Subject":"${subjectSelect.options[subjectIndex].value}","Index":${(currentPage - 1) * 10},"Size":10}`
+                body: `{"Keyword":"${keywordStr}","Subject":"${subjectSelect.options[subjectIndex].value}","Page":${currentPage},"Size":10}`
             })
                 .then(response => response.json())
                 .then(result => setUI(result))
@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch('/admin_search', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: `{"Keyword":"${keywordStr}","Subject":"${subjectSelect.options[subjectIndex].value}","Index":0,"Size":10}`
+            body: `{"Keyword":"${keywordStr}","Subject":"${subjectSelect.options[subjectIndex].value}","Page":1,"Size":10}`
         })
             .then(response => response.json())
             .then(result => setUI(result))
@@ -230,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch('/admin_search', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: `{"Subject":"任意","Keyword":"","Index":0,"Size":10}`
+        body: `{"Subject":"任意","Keyword":"","Page":1,"Size":10}`
     })
         .then(response => response.json())
         .then(result => setUI(result))

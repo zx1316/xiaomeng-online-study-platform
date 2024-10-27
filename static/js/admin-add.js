@@ -303,7 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 fetch('/admin_update', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: postBody
+                    body: JSON.stringify(postBody)
                 })
                     .then(response => {
                         // 检查响应状态码
@@ -335,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 fetch('/admin_add', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: postBody
+                    body: JSON.stringify(postBody)
                 })
                     .then(response => {
                         // 检查响应状态码
@@ -376,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const file = element.querySelector('input').files[0]
                 const reader = new FileReader()
                 reader.onload = function (e) {
-                    base64Images[index] = {"name": k, "base64": e.target.result}
+                    base64Images[index] = {"name": k, "base64": e.target.result.split(',')[1]}
                     console.log(e.target.result)
                     if (base64Images.filter(b64 => b64 !== undefined).length === imgsChildDivs.length) {
                         postToServer()  // 如果所有文件都已转换，则发送POST请求

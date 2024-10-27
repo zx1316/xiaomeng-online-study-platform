@@ -18,19 +18,15 @@ app.config['SECRET_KEY'] = 'secret!'
 app.config['STATIC_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///learning_platform.db'
 socketio = SocketIO(app)
-db = SQLAlchemy(app)
+db.init_app(app)
 
 first_request_processed = False
 
 
-# we use before_request because before_first_request is deprecated
-@app.before_request
-def create_tables():
-    global first_request_processed
-    if not first_request_processed:
-        # 执行首次请求前的操作
+# we use this because before_first_request is deprecated
+def initialize_database():
+    with app.app_context():
         db.create_all()
-        first_request_processed = True
 
 
 # --- Question Management  ---
@@ -55,6 +51,7 @@ def add_question():
         Answer=json.dumps(processed_data['Answer'])
     )
     db.session.add(new_question)
+    db.session.commit()
     return '', 200
 
 
@@ -97,34 +94,40 @@ def update_question():
 
 @app.route('/admin_search', methods=['POST'])
 def search_questions():
-    subject = request.args.get('Subject')
+    data = request.json
+    subject = data.get('Subject')
     if not subject:
         return jsonify({"Msg": "Subject is required"}), 400
-    keyword = request.args.get('Keyword')
-    page_index = request.args.get('Index', 1)
-    page_size = request.args.get('Size', 10)
-    if not isinstance(page_index, int):
-        return jsonify({"Msg": "Page_index must be an integer"}), 400
+    keyword = data.get('Keyword')
+    page = data.get('Page', 1)
+    page_size = data.get('Size', 10)
+    if not isinstance(page, int):
+        return jsonify({"Msg": "Page must be an integer"}), 400
     if not isinstance(page_size, int):
         return jsonify({"Msg": "Page_size must be an integer"}), 400
-
-    query = Question.query.filter(Question.Subject == subject)
+    print(data)
+    query = Question.query
+    if subject != '任意':
+        query = query.filter(Question.Subject == subject)
     if keyword:
         query = query.filter(Question.Question.like(f'%{keyword}%'))
 
-    questions = query.paginate(page_index, page_size, False).items
-    result = [
-        {
-            "Qid": q.Qid,
-            "Subject": q.Subject,
-            "Question": q.Question,
-            "SelectionA": q.SelectionA,
-            "SelectionB": q.SelectionB,
-            "SelectionC": q.SelectionC,
-            "SelectionD": q.SelectionD,
-            "Answer": json.loads(q.Answer)
-        } for q in questions
-    ]
+    paginated = query.paginate(page=page, per_page=page_size)
+    result = {
+        "Total": paginated.total,
+        "Questions": [
+            {
+                "Qid": q.Qid,
+                "Subject": q.Subject,
+                "Question": q.Question,
+                "SelectionA": q.SelectionA,
+                "SelectionB": q.SelectionB,
+                "SelectionC": q.SelectionC,
+                "SelectionD": q.SelectionD,
+                "Answer": json.loads(q.Answer)
+            } for q in paginated.items
+        ]
+    }
     return jsonify(result)
 
 
@@ -260,4 +263,5 @@ def admin_preview_page():
 
 
 if __name__ == '__main__':
+    initialize_database()
     socketio.run(app, host='0.0.0.0', debug=True)
