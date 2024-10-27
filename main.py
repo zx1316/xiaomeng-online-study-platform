@@ -62,10 +62,6 @@ def update_question():
     if not data.get('Subject') or not data.get('Question') or not data.get('Answer') or not data.get('Qid') or not data.get('SelectionA') or not data.get('SelectionB') or not data.get('SelectionC') or not data.get('SelectionD'):
         return jsonify({"Msg": "Qid, Subject, Question, Selections and Answer are required fields"}), 400
 
-    processed_data, error = process_images_and_text(data)
-    if error:
-        return jsonify({"Msg": error}), 400
-
     question = Question.query.filter_by(Qid=data['Qid']).first()
     if not question:
         return jsonify({"Msg": "Question not found"}), 400
@@ -264,4 +260,4 @@ def admin_preview_page():
 
 if __name__ == '__main__':
     initialize_database()
-    socketio.run(app, host='0.0.0.0', debug=True)
+    socketio.run(app, host='127.0.0.1', debug=True)

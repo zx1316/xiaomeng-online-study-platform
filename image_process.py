@@ -1,9 +1,11 @@
 import base64
+import glob
 import hashlib
 import os
 import re
 
 IMAGE_SAVE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/img/q')
+
 
 def extract_image_hashes(text):
     """Extracts MD5 hashed filenames from <img> tags in a text field."""
@@ -29,6 +31,17 @@ def save_image(base64_str):
     return file_name, None
 
 
+def check_duplicate_image(filename):
+    check_path = os.path.join(os.getcwd(), 'static', 'img', 'q')
+    name, ext = os.path.splitext(filename)
+    search_pattern = os.path.join(check_path, f"{name}.*")
+    matches = glob.glob(search_pattern)
+    for match in matches:
+        if match.endswith(ext):
+            return True
+    return False
+
+
 def process_images_and_text(data, old_data=None):
     text_fields = ['Question', 'SelectionA', 'SelectionB', 'SelectionC', 'SelectionD']
     placeholder_pattern = r"%%%(.*?)@@@"
@@ -37,12 +50,18 @@ def process_images_and_text(data, old_data=None):
     for field in text_fields:
         if field in data and data[field]:
             placeholders = set(re.findall(placeholder_pattern, data[field]))
-            # print("pipeigeshu:", len(placeholders))
+
             for placeholder in placeholders:
                 image_key = placeholder
                 if image_key not in data:
-                    return None, f"Missing image for placeholder '{image_key}'"
-
+                    if old_data is None:
+                        return None, f"Missing image for placeholder '{image_key}'"
+                    else:
+                        if not check_duplicate_image(image_key):
+                            return None, f"Missing image for placeholder '{image_key}'"
+                        else:
+                            updated_image_hashes.add(image_key)
+                            continue
                 image_filename, error = save_image(data[image_key])
                 print("image_name:", image_filename)
                 if error:
