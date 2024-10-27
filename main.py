@@ -2,6 +2,7 @@ import json
 import os
 from flask import Flask, redirect, request, url_for, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
+from jsonschema import validate
 from sqlalchemy.sql import func
 from flask_socketio import SocketIO
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -29,14 +30,44 @@ def initialize_database():
         db.create_all()
 
 
+# 用于优雅验证json的包装器
+def validate_json(schema):
+    def decorator(f):
+        def wrapper(*args, **kwargs):
+            try:
+                # 尝试获取并解析JSON数据
+                json_data = request.get_json(force=True)
+                # 使用提供的schema验证JSON数据
+                validate(instance=json_data, schema=schema)
+            except Exception as e:
+                # 如果验证失败，返回400错误和错误信息
+                return jsonify(Msg=str(e)), 400
+            # 如果验证成功，将解析后的JSON数据作为参数传递给视图函数
+            return f(json_data, *args, **kwargs)
+        return wrapper
+    return decorator
+
+
 # --- Question Management  ---
 @app.route('/admin_add', methods=['POST'])
-def add_question():
-    data = request.json
-    print(data)
-    if not data.get('Subject') or not data.get('Question') or not data.get('Answer') or not data.get('SelectionA') or not data.get('SelectionB') or not data.get('SelectionC') or not data.get('SelectionD'):
-        return jsonify({"Msg": "Subject, Question, Selections and Answer are required fields"}), 400
-
+@validate_json({
+    "type": "object",
+    "properties": {
+        "Subject": {"type": "string"},
+        "Question": {"type": "string"},
+        "SelectionA": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+        "SelectionB": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+        "SelectionC": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+        "SelectionD": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+        "Answer": {
+            "type": "array",
+            "items": {"type": "string"}
+        }
+    },
+    "required": ["Subject", "Question", "SelectionA", "SelectionB", "SelectionC", "SelectionD", "Answer"]
+})
+def add_question(data):
+    # print(data)
     processed_data, error = process_images_and_text(data)
     if error:
         return jsonify({"Msg": error}), 400
@@ -56,12 +87,25 @@ def add_question():
 
 
 @app.route('/admin_update', methods=['POST'])
-def update_question():
-    data = request.json
-    print(data)
-    if not data.get('Subject') or not data.get('Question') or not data.get('Answer') or not data.get('Qid') or not data.get('SelectionA') or not data.get('SelectionB') or not data.get('SelectionC') or not data.get('SelectionD'):
-        return jsonify({"Msg": "Qid, Subject, Question, Selections and Answer are required fields"}), 400
-
+@validate_json({
+    "type": "object",
+    "properties": {
+        "Qid": {"type": "integer"},
+        "Subject": {"type": "string"},
+        "Question": {"type": "string"},
+        "SelectionA": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+        "SelectionB": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+        "SelectionC": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+        "SelectionD": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+        "Answer": {
+            "type": "array",
+            "items": {"type": "string"}
+        }
+    },
+    "required": ["Qid", "Subject", "Question", "SelectionA", "SelectionB", "SelectionC", "SelectionD", "Answer"]
+})
+def update_question(data):
+    # print(data)
     question = Question.query.filter_by(Qid=data['Qid']).first()
     if not question:
         return jsonify({"Msg": "Question not found"}), 400
@@ -89,19 +133,22 @@ def update_question():
 
 
 @app.route('/admin_search', methods=['POST'])
-def search_questions():
-    data = request.json
+@validate_json({
+    "type": "object",
+    "properties": {
+        "Subject": {"type": "string"},
+        "Keyword": {"type": "string"},
+        "Page": {"type": "integer"},
+        "Size": {"type": "integer"}
+    },
+    "required": ["Subject", "Keyword", "Page", "Size"]
+})
+def search_questions(data):
+    # print(data)
     subject = data.get('Subject')
-    if not subject:
-        return jsonify({"Msg": "Subject is required"}), 400
     keyword = data.get('Keyword')
-    page = data.get('Page', 1)
-    page_size = data.get('Size', 10)
-    if not isinstance(page, int):
-        return jsonify({"Msg": "Page must be an integer"}), 400
-    if not isinstance(page_size, int):
-        return jsonify({"Msg": "Page_size must be an integer"}), 400
-    print(data)
+    page = data.get('Page')
+    page_size = data.get('Size')
     query = Question.query
     if subject != '任意':
         query = query.filter(Question.Subject == subject)
@@ -128,13 +175,15 @@ def search_questions():
 
 
 @app.route('/admin_delete', methods=['POST'])
-def delete_question():
-    qid = request.json.get('Qid')
-    if not qid:
-        return jsonify({"Msg": "Qid is required"}), 400
-    if not isinstance(qid, int):
-        return jsonify({"Msg": "Qid must be an integer"}), 400
-
+@validate_json({
+    "type": "object",
+    "properties": {
+        "Qid": {"type": "integer"}
+    },
+    "required": ["Qid"]
+})
+def delete_question(data):
+    qid = data.get('Qid')
     question = Question.query.filter_by(Qid=qid).first()
     if question:
         db.session.delete(question)
@@ -145,15 +194,17 @@ def delete_question():
 
 
 # --- Exercise Module  ---
-@app.route('/exercise', methods=['GET'])
+@app.route('/exercise', methods=['POST'])
+@validate_json({
+    "type": "object",
+    "properties": {
+        "Subject": {"type": "string"}
+    },
+    "required": ["Subject"]
+})
 def get_exercise_questions():
     subject = request.args.get('Subject')
-    num_questions = request.args.get('Number')
-
-    if not subject:
-        return jsonify({"Msg": "Subject is required"}), 400
-    if not num_questions or not num_questions.isdigit():
-        return jsonify({"Msg": "A valid Number of questions is required"}), 400
+    num_questions = request.args.get('Number')  # todo: 定死一个值，待定
 
     questions = Question.query.filter_by(Subject=subject).order_by(func.random()).limit(num_questions).all()
     result = [
@@ -172,19 +223,29 @@ def get_exercise_questions():
 
 
 @app.route('/exercise_result', methods=['POST'])
-def submit_exercise_results():
-    data = request.json
-    uid = data.get('Uid')
+@validate_json({
+    "type": "object",
+    "properties": {
+        "Subject": {"type": "string"},
+        "WrongQuestion": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "Qid": {"type": "integer"},
+                    "WrongAnswer": {"type": "string"}
+                },
+                "required": ["Qid", "WrongAnswer"]
+            }
+        }
+    },
+    "required": ["Subject", "WrongQuestion"]
+})
+def submit_exercise_results(data):
+    uid = data.get('Uid')           # todo: 加入鉴权后不需要uid
     subject = data.get('Subject')
-    total = data.get('Total')
+    total = data.get('Total')       # todo: 定死这个练习数量
     wrong_questions = data.get('WrongQuestion')
-
-    if not uid or not subject or total is None:
-        return jsonify({"Msg": "Uid, Subject, and Total are required"}), 400
-    if not isinstance(total, int):
-        return jsonify({"Msg": "Total must be an integer"}), 400
-    if not isinstance(wrong_questions, list):
-        return jsonify({"Msg": "WrongQuestion must be a list"}), 400
 
     right_cnt = total - len(wrong_questions)
     for wrong in wrong_questions:
