@@ -1,5 +1,7 @@
 import json
 import os
+from functools import wraps
+
 from flask import Flask, redirect, request, url_for, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from jsonschema import validate
@@ -9,7 +11,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from io import BytesIO
 
 from db_models import *
-
 from image_process import process_images_and_text
 
 IMAGE_SAVE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/img/q')
@@ -33,17 +34,14 @@ def initialize_database():
 # 用于优雅验证json的包装器
 def validate_json(schema):
     def decorator(f):
+        @wraps(f)
         def wrapper(*args, **kwargs):
             try:
-                # 尝试获取并解析JSON数据
                 json_data = request.get_json(force=True)
-                # 使用提供的schema验证JSON数据
                 validate(instance=json_data, schema=schema)
+                return f(*args, **kwargs, json_data=json_data)
             except Exception as e:
-                # 如果验证失败，返回400错误和错误信息
                 return jsonify(Msg=str(e)), 400
-            # 如果验证成功，将解析后的JSON数据作为参数传递给视图函数
-            return f(json_data, *args, **kwargs)
         return wrapper
     return decorator
 
@@ -66,9 +64,8 @@ def validate_json(schema):
     },
     "required": ["Subject", "Question", "SelectionA", "SelectionB", "SelectionC", "SelectionD", "Answer"]
 })
-def add_question(data):
-    # print(data)
-    processed_data, error = process_images_and_text(data)
+def add_question(json_data):
+    processed_data, error = process_images_and_text(json_data)
     if error:
         return jsonify({"Msg": error}), 400
 
@@ -104,9 +101,8 @@ def add_question(data):
     },
     "required": ["Qid", "Subject", "Question", "SelectionA", "SelectionB", "SelectionC", "SelectionD", "Answer"]
 })
-def update_question(data):
-    # print(data)
-    question = Question.query.filter_by(Qid=data['Qid']).first()
+def update_question(json_data):
+    question = Question.query.filter_by(Qid=json_data['Qid']).first()
     if not question:
         return jsonify({"Msg": "Question not found"}), 400
     old_data = {
@@ -116,7 +112,7 @@ def update_question(data):
         "SelectionC": question.SelectionC,
         "SelectionD": question.SelectionD
     }
-    processed_data, error = process_images_and_text(data, old_data)
+    processed_data, error = process_images_and_text(json_data, old_data)
     if error:
         return jsonify({"Msg": error}), 400
 
@@ -143,12 +139,11 @@ def update_question(data):
     },
     "required": ["Subject", "Keyword", "Page", "Size"]
 })
-def search_questions(data):
-    # print(data)
-    subject = data.get('Subject')
-    keyword = data.get('Keyword')
-    page = data.get('Page')
-    page_size = data.get('Size')
+def search_questions(json_data):
+    subject = json_data.get('Subject')
+    keyword = json_data.get('Keyword')
+    page = json_data.get('Page')
+    page_size = json_data.get('Size')
     query = Question.query
     if subject != '任意':
         query = query.filter(Question.Subject == subject)
@@ -182,8 +177,8 @@ def search_questions(data):
     },
     "required": ["Qid"]
 })
-def delete_question(data):
-    qid = data.get('Qid')
+def delete_question(json_data):
+    qid = json_data.get('Qid')
     question = Question.query.filter_by(Qid=qid).first()
     if question:
         db.session.delete(question)
@@ -202,9 +197,9 @@ def delete_question(data):
     },
     "required": ["Subject"]
 })
-def get_exercise_questions():
-    subject = request.args.get('Subject')
-    num_questions = request.args.get('Number')  # todo: 定死一个值，待定
+def get_exercise_questions(json_data):
+    subject = json_data.get('Subject')
+    num_questions = json_data.get('Number')  # todo: 定死一个值，待定
 
     questions = Question.query.filter_by(Subject=subject).order_by(func.random()).limit(num_questions).all()
     result = [
@@ -241,11 +236,11 @@ def get_exercise_questions():
     },
     "required": ["Subject", "WrongQuestion"]
 })
-def submit_exercise_results(data):
-    uid = data.get('Uid')           # todo: 加入鉴权后不需要uid
-    subject = data.get('Subject')
-    total = data.get('Total')       # todo: 定死这个练习数量
-    wrong_questions = data.get('WrongQuestion')
+def submit_exercise_results(json_data):
+    uid = json_data.get('Uid')           # todo: 加入鉴权后不需要uid
+    subject = json_data.get('Subject')
+    total = json_data.get('Total')       # todo: 定死这个练习数量
+    wrong_questions = json_data.get('WrongQuestion')
 
     right_cnt = total - len(wrong_questions)
     for wrong in wrong_questions:
