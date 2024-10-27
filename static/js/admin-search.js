@@ -120,36 +120,44 @@ document.addEventListener('DOMContentLoaded', () => {
         userDropdownMenu.style.transform = 'none'
     })
 
+    function setSessionStorageForJump(qidStr) {
+        const qidNum = parseInt(qidStr)
+        for (let obj of searchResult) {
+            if (obj.Qid === qidNum) {
+                sessionStorage.setItem('Qid', qidStr);
+                sessionStorage.setItem('Subject', obj.Subject)
+                sessionStorage.setItem('Question', obj.Question)
+                sessionStorage.setItem('SelectionA', obj.SelectionA === null ? '' : obj.SelectionA)
+                sessionStorage.setItem('SelectionB', obj.SelectionB === null ? '' : obj.SelectionB)
+                sessionStorage.setItem('SelectionC', obj.SelectionC === null ? '' : obj.SelectionC)
+                sessionStorage.setItem('SelectionD', obj.SelectionD === null ? '' : obj.SelectionD)
+                sessionStorage.setItem('AnswerCount', obj.Answer.length)
+                obj.Answer.forEach((item, index) => {
+                    sessionStorage.setItem(`Answer${index}`, item)
+                })
+                break
+            }
+        }
+    }
+
 
     resultList.addEventListener('click', (e) => {
         const target = e.target;
         if (target.tagName === 'BUTTON') {
-            const qid = target.parentNode.parentNode.querySelector('.cursor-pointer').querySelector('.mb-0').innerHTML.substring(4)
+            const qid = target.parentNode.parentNode.querySelector('.cursor-pointer').querySelector('.mb-0').innerText.substring(4)
             if (target.classList.contains('btn-outline-danger')) {
                 // 删除题目并二次确认
                 document.getElementById('delete-qid-span').innerText = qid
                 new bootstrap.Modal(document.getElementById('warning-modal')).show()
             } else {
                 // 跳转修改题目
-                const qidNum = parseInt(qid)
-                for (let obj of searchResult) {
-                    if (obj.Qid === qidNum) {
-                        sessionStorage.setItem('Qid', qid);
-                        sessionStorage.setItem('Subject', obj.Subject)
-                        sessionStorage.setItem('Question', obj.Question)
-                        sessionStorage.setItem('SelectionA', obj.SelectionA === null ? '' : obj.SelectionA)
-                        sessionStorage.setItem('SelectionB', obj.SelectionB === null ? '' : obj.SelectionB)
-                        sessionStorage.setItem('SelectionC', obj.SelectionC === null ? '' : obj.SelectionC)
-                        sessionStorage.setItem('SelectionD', obj.SelectionD === null ? '' : obj.SelectionD)
-                        sessionStorage.setItem('AnswerCount', obj.Answer.length)
-                        obj.Answer.forEach((item, index) => {
-                            sessionStorage.setItem('Answer' + index, item)
-                        })
-                        break
-                    }
-                }
+                setSessionStorageForJump(qid)
                 location.href = 'admin-add.html?update=1'
             }
+        } else if (target.tagName === 'DIV' && target.classList.contains('cursor-pointer')) {
+            const qid = target.querySelector('.mb-0').innerText.substring(4)
+            setSessionStorageForJump(qid)
+            location.href = 'admin-preview.html'
         }
     })
 
@@ -159,24 +167,43 @@ document.addEventListener('DOMContentLoaded', () => {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: `{"Qid":${document.getElementById('delete-qid-span').innerText}}`
-        })      // 忽略删除接口的返回
-        // 视情况调整页号
-        let currentPage = parseInt(sessionStorage.getItem('currentPage'))
-        if (searchResult.length <= 1 && currentPage > 1) {
-            currentPage--
-            sessionStorage.setItem('currentPage', String(currentPage))
-        }
-        // 重新拉列表
-        searchBtn.disabled = true
-        const keywordStr = sessionStorage.getItem('keywordStr')
-        const subjectIndex = parseInt(sessionStorage.getItem('subjectIndex'))
-        fetch('/admin_search', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: `{"Keyword":"${keywordStr}","Subject":"${subjectSelect.options[subjectIndex].value}","Page":${currentPage},"Size":10}`
+        }).then(response => {
+            // 检查响应状态码
+            if (response.status === 200) {
+                // 状态码为200时，处理正常情况
+                return response.text()  // 由于内容为空，这里使用text()方法
+            } else if (response.status === 400) {
+                // 状态码为400时，解析JSON错误信息
+                return response.json().then(data => {
+                    throw new Error(data.Msg)
+                });
+            } else {
+                // 其他状态码，抛出错误
+                throw new Error('Unexpected status code: ' + response.status)
+            }
         })
-            .then(response => response.json())
-            .then(result => setUI(result))
+        .then(result => {
+            // 视情况调整页号
+            let currentPage = parseInt(sessionStorage.getItem('currentPage'))
+            if (searchResult.length <= 1 && currentPage > 1) {
+                currentPage--
+                sessionStorage.setItem('currentPage', currentPage.toString())
+            }
+            // 重新拉列表
+            searchBtn.disabled = true
+            const keywordStr = sessionStorage.getItem('keywordStr')
+            const subjectIndex = parseInt(sessionStorage.getItem('subjectIndex'))
+            fetch('/admin_search', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: `{"Keyword":"${keywordStr}","Subject":"${subjectSelect.options[subjectIndex].value}","Page":${currentPage},"Size":10}`
+            })
+                .then(response => response.json())
+                .then(result => setUI(result))
+        })
+        .catch(error => {
+            alert('服务器错误：' + error.message)
+        })
     })
 
     // 换页
@@ -215,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
         searchBtn.disabled = true
         sessionStorage.setItem('currentPage', '1')
         sessionStorage.setItem('keywordStr', keywordInput.value)
-        sessionStorage.setItem('subjectIndex', String(subjectSelect.selectedIndex))
+        sessionStorage.setItem('subjectIndex', subjectSelect.selectedIndex.toString())
         fetch('/admin_search', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -237,6 +264,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (sessionStorage.getItem('subjectIndex') === null) {
         sessionStorage.setItem('subjectIndex', '0')
+    }
+
+    // 如果从预览界面删除后返回
+    if (new URLSearchParams(window.location.search).get('from_delete') !== null) {
+        // 视情况调整页号
+        let currentPage = parseInt(sessionStorage.getItem('currentPage'))
+        if (searchResult.length <= 1 && currentPage > 1) {
+            sessionStorage.setItem('currentPage', (currentPage - 1).toString())
+        }
     }
 
     // 进来默认先搜索一次

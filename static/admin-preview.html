@@ -3,50 +3,21 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>题库检索 · 小萌在线学习平台</title>
+    <title>题目预览 · 小萌在线学习平台</title>
     <link rel="stylesheet" href="https://cdn.staticfile.net/twitter-bootstrap/5.3.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.staticfile.net/font-awesome/4.7.0/css/font-awesome.css">
     <link rel="stylesheet" href="css/theme-switch.css">
     <style>
         body {
             padding-top: 4.5rem;
-        }
-
-        #search-form button {
-            margin-top: calc(1.5em + 0.25rem);
-            min-width: 96px;
-        }
-
-        #search-form #subject-select {
-            min-width: 256px;
-        }
-
-        @media (max-width: 767px) {
-            #search-form button {
-                margin-top: 0.5rem;
-            }
-
-            .item-btn-group button {
-                flex-grow: 1;
-            }
-        }
-
-        @media (min-width: 768px) {
-            .item-btn-group {
-                flex-direction: column;
-            }
-        }
-
-        .item-btn-group button {
-            min-width: 5em;
-        }
-
-        .cursor-pointer {
-            cursor: pointer;
+            padding-bottom: 1rem;
         }
 
         .navbar .dropdown-toggle::after {
             color: white;
+        }
+
+        .question-img {
+            max-width: 100%;
         }
     </style>
     <script src="js/color-modes.js"></script>
@@ -108,10 +79,10 @@
         <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav me-auto mb-2 mb-md-0">
                 <li class="nav-item">
-                    <a class="nav-link active" href="#">题库检索</a>
+                    <a class="nav-link" href="admin-search.html">题库检索</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="admin-add.html">题目添加</a>
+                    <a class="nav-link active" href="#">题目预览</a>
                 </li>
             </ul>
             <div class="d-flex align-items-center">
@@ -119,7 +90,7 @@
                     <a href="#" class="d-block link-body-emphasis text-decoration-none dropdown-toggle" id="user-dropdown-trigger" data-bs-toggle="dropdown" aria-expanded="false">
                         <img src="https://github.com/mdo.png" alt="mdo" width="32" height="32" class="rounded-circle">
                     </a>
-                    <ul class="dropdown-menu text-small" id="user-dropdown-menu">
+                    <ul class="dropdown-menu text-small align-items-center" id="user-dropdown-menu">
                         <li><h6 class="dropdown-header">测试测试测试测试测试测试测试测试</h6></li>
                         <li><h6 class="dropdown-header">UID：114514</h6></li>
                         <li><hr class="dropdown-divider"></li>
@@ -132,34 +103,25 @@
 </nav>
 
 <!--正文-->
-<div class="container">
-    <!--搜索-->
-    <form id="search-form">
-        <div class="d-grid gap-2 d-md-flex justify-content-md-center mb-3">
-            <div class="flex-grow-1">
-                <label for="keyword-input" class="mb-1">关键词</label>
-                <input type="text" class="form-control" id="keyword-input">
-            </div>
-            <div>
-                <label for="subject-select" class="mb-1">科目</label>
-                <select class="form-select" id="subject-select">
-                    <option value="任意" selected>任意</option>
-                    <option value="数学Ⅰ">数学Ⅰ</option>
-                    <option value="数学Ⅱ">数学Ⅱ</option>
-                    <option value="政治">政治</option>
-                    <option value="计算机学科专业基础综合">计算机学科专业基础综合</option>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-primary px-3" id="search-btn">检索</button>
-        </div>
-    </form>
-    <hr>
-    <!--检索结果-->
-    <p class="mx-1" id="result-p"></p>
-    <ul class="list-group" id="result-list"></ul>
-    <!--分页器-->
-    <div class="mt-3 d-flex justify-content-center">
-        <ul class="pagination" id="pagination"></ul>
+<div class="container p-4 bg-body">
+    <h3>科目</h3>
+    <p id="subject"></p>
+    <h3>题目</h3>
+    <p id="question"></p>
+    <div id="selection">
+        <h3>选项</h3>
+        <ul>
+            <li>A：<span id="selection-a"></span></li>
+            <li>B：<span id="selection-b"></span></li>
+            <li>C：<span id="selection-c"></span></li>
+            <li>D：<span id="selection-d"></span></li>
+        </ul>
+    </div>
+    <h3>答案</h3>
+    <ul id="answer"></ul>
+    <div class="d-flex justify-content-center gap-5">
+        <button id="update-btn" class="btn btn-primary" style="width: 5em">修改</button>
+        <button id="delete-btn" class="btn btn-danger" style="width: 5em">删除</button>
     </div>
 </div>
 
@@ -183,6 +145,5 @@
 </div>
 
 <script src="https://cdn.staticfile.net/twitter-bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
-<script src="js/admin-search.js"></script>
+<script src="js/admin-preview.js"></script>
 </body>
-</html>
