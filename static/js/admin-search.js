@@ -155,8 +155,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 location.href = 'admin-add.html?update=1'
             }
         } else if (target.tagName === 'DIV' && target.classList.contains('cursor-pointer')) {
-            const qid = target.querySelector('.mb-0').innerText.substring(4)
-            setSessionStorageForJump(qid)
+            // 查看详情
+            setSessionStorageForJump(target.querySelector('.mb-0').innerText.substring(4))
+            location.href = 'admin-preview.html'
+        } else if (target.tagName === 'P') {
+            // 查看详情
+            if (target.classList.contains('mb-0')) {
+                setSessionStorageForJump(target.innerText.substring(4))
+            } else {
+                setSessionStorageForJump(target.parentNode.querySelector('.mb-0').innerText.substring(4))
+            }
             location.href = 'admin-preview.html'
         }
     })
