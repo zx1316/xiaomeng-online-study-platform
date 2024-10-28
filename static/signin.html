@@ -1,0 +1,49 @@
+<html lang="zh">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>登录 · 小萌在线学习平台</title>
+    <link href="https://cdn.staticfile.net/twitter-bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/signin.css" rel="stylesheet">
+</head>
+<body class="d-flex align-items-center py-4 bg-body-tertiary">
+<main class="w-100 m-auto">
+    <form id="form-signin">
+        <h2 class="h2 mb-3 fw-normal">小萌在线学习平台</h2>
+        <h3 class="h3 mb-3 fw-normal">请登录</h3>
+        <div class="form-floating">
+            <input type="text" class="form-control floating-top-input" id="username-input" placeholder="Username">
+            <label for="username-input">用户名</label>
+        </div>
+        <div class="form-floating">
+            <input type="password" class="form-control floating-bottom-input" id="password-input" placeholder="Password">
+            <label for="password-input">密码</label>
+        </div>
+        <button class="btn btn-primary w-100 py-2 my-3" type="submit">登录</button>
+        <div class="mb-3">
+            没有账号？<a href="signup.html">注册</a>
+        </div>
+    </form>
+</main>
+<div class="modal fade" id="err-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">错误</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="err-modal-body">
+                <span id="empty-err-text">请输入用户名和密码！</span>
+                <span id="password-err-text">用户名或密码错误！</span>
+                <span id="network-err-text">网络错误，请检查网络后再尝试。</span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="js/bootstrap.bundle.min.js"></script>
+<script src="js/signin.js"></script>
+</body>
+</html>

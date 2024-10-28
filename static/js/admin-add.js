@@ -1,13 +1,13 @@
 const re = /%%%.+?@@@/g
 
-// 悬浮提示的初始化代码
-var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-    return new bootstrap.Tooltip(tooltipTriggerEl)
-})
-
 // todo: 限制答案数量和图片数量？
 document.addEventListener('DOMContentLoaded', () => {
+    // 悬浮提示的初始化代码
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+
     const userDropdownTrigger = document.getElementById('user-dropdown-trigger')
     const userDropdownMenu = document.getElementById('user-dropdown-menu')
 
@@ -43,6 +43,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const isUpdate = new URLSearchParams(window.location.search).get('update') !== null;
     const currentNav = document.getElementById('current-nav')
     const imgNameMap = new Map();
+
+    const username = document.getElementById('username')
+    const uid = document.getElementById('uid')
+    const logoutLink = document.getElementById('logout-link')
+
+    function getCookie(name) {
+        const cookieArray = document.cookie.split(';'); // 分割cookie字符串
+        // 遍历cookie数组
+        for (let i = 0; i < cookieArray.length; i++) {
+            const cookiePair = cookieArray[i].trim();   // 获取每个cookie的名称和值
+            const cookieNameValuePair = cookiePair.split('=');  // 分割名称和值
+            // 检查cookie名称是否匹配
+            if (cookieNameValuePair[0] === name) {
+                return decodeURIComponent(cookieNameValuePair[1]);
+            }
+        }
+        return null;
+    }
 
 
     // 获取所有的占位符
@@ -387,6 +405,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     })
 
+    // 登出
+    logoutLink.addEventListener('click', (e) => {
+        fetch('/logout', {method: 'POST'})
+            .then(response => response.text())
+            .then(result => {
+                window.location.href = '/signin.html'
+            })
+            .catch(error => {
+                window.location.href = '/signin.html'
+            })
+    })
+
+    username.innerText = getCookie('username')
+    uid.innerText = getCookie('uid')
+
     if (isUpdate) {
         // 设置界面
         submitBtn.value = '修改题目！'
@@ -446,4 +479,5 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
+
 })

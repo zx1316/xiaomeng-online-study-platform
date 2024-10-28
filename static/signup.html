@@ -1,0 +1,69 @@
+<html lang="zh">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>注册 · 小萌在线学习平台</title>
+    <link href="https://cdn.staticfile.net/twitter-bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/signin.css" rel="stylesheet">
+</head>
+<body class="d-flex align-items-center py-4 bg-body-tertiary">
+<main class="w-100 m-auto">
+    <form id="form-signup">
+        <h2 class="h2 mb-3 fw-normal">小萌在线学习平台</h2>
+        <h3 class="h3 mb-3 fw-normal">请注册</h3>
+        <div class="form-floating">
+            <input type="text" class="form-control floating-top-input" id="username-input" placeholder="Username" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-original-title="2到20个非空白字符">
+            <label for="username-input">用户名</label>
+        </div>
+        <div class="form-floating">
+            <input type="password" class="form-control floating-middle-input" id="password-input" placeholder="Password" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-original-title="8到30个数字/英文字母/非空白特殊字符">
+            <label for="password-input">密码</label>
+        </div>
+        <div class="form-floating">
+            <input type="password" class="form-control floating-bottom-input" id="confirm-password-input" placeholder="ConfirmPassword">
+            <label for="confirm-password-input">确认密码</label>
+        </div>
+        <button class="btn btn-primary w-100 py-2 my-3" type="submit">注册</button>
+        <div class="mb-3">
+            已有账号？<a id="signin-link" href="#">登录</a>
+        </div>
+    </form>
+</main>
+<div class="modal fade" id="err-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">错误</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="err-modal-body">
+                <span id="username-limit-err-text">用户名不符合要求！</span>
+                <span id="password-limit-err-text">密码不符合要求！</span>
+                <span id="password-confirm-err-text">确认密码和密码不一致！</span>
+                <span id="username-exist-err-text">该用户名已被注册！</span>
+                <span id="network-err-text">网络错误，请检查网络后再尝试。</span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="success-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">注册成功🎉</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">注册成功！点击下方按钮将跳转至登录页面。</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="goto-signin-btn">去登录</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="js/bootstrap.bundle.min.js"></script>
+<script src="js/signup.js"></script>
+</body>
+</html>

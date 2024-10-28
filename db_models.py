@@ -1,15 +1,28 @@
+from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 
 
 # --- Database Models ---
-class User(db.Model):
+class User(UserMixin, db.Model):
     Uid = db.Column(db.Integer, primary_key=True)
     Username = db.Column(db.String(32), nullable=False, unique=True)
-    Password = db.Column(db.String(32), nullable=False)
+    Password = db.Column(db.String(128), nullable=False)
     IsAdmin = db.Column(db.Boolean, default=False)
-    LastLoginIn = db.Column(db.DateTime)
+    LastLogout = db.Column(db.DateTime)
+
+    def set_password(self, password):
+        # 生成密码哈希
+        self.Password = generate_password_hash(password)
+
+    def check_password(self, password):
+        # 验证密码
+        return check_password_hash(self.Password, password)
+
+    def get_id(self):
+        return str(self.Uid)
 
 
 class Friend(db.Model):

@@ -1,14 +1,13 @@
+from datetime import datetime
 import json
 import os
 from functools import wraps
 
-from flask import Flask, redirect, request, url_for, jsonify, send_from_directory
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, redirect, request, url_for, jsonify, send_from_directory, abort
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from jsonschema import validate
 from sqlalchemy.sql import func
 from flask_socketio import SocketIO
-from werkzeug.security import generate_password_hash, check_password_hash
-from io import BytesIO
 
 from db_models import *
 from image_process import process_images_and_text
@@ -19,10 +18,11 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 app.config['STATIC_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///learning_platform.db'
-socketio = SocketIO(app)
 db.init_app(app)
-
-first_request_processed = False
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+socketio = SocketIO(app)
 
 
 # we use this because before_first_request is deprecated
@@ -46,8 +46,107 @@ def validate_json(schema):
     return decorator
 
 
+# --- User System ---
+@login_manager.user_loader
+def load_user(user_id):
+    # 从数据库中根据用户ID加载用户
+    return User.query.get(int(user_id))
+
+
+# 登录
+@app.route('/login', methods=['POST'])
+@validate_json({
+    "type": "object",
+    "properties": {
+        "Username": {"type": "string"},
+        "Password": {"type": "string"},
+    },
+    "required": ["Username", "Password"]
+})
+def login(json_data):
+    username = json_data.get('Username')
+    password = json_data.get('Password')
+
+    user = User.query.filter_by(Username=username).first()
+
+    if user and user.check_password(password):
+        login_user(user)
+        if user.IsAdmin:
+            return jsonify(Msg="admin_ok", Uid=user.Uid)
+        return jsonify(Msg="ok", Uid=user.Uid)
+    return jsonify(Msg="password_err"), 400
+
+
+# 登出
+@app.route('/logout', methods=['POST'])
+@login_required
+def logout():
+    current_user.LastLogout = datetime.utcnow()  # 记录登出时间
+    db.session.commit()
+    logout_user()
+    return ''
+
+
+# 注册
+@app.route('/register', methods=['POST'])
+@validate_json({
+    "type": "object",
+    "properties": {
+        "Username": {
+            "type": "string",
+            "pattern": "^\\S{2,20}$"
+        },
+        "Password": {
+            "type": "string",
+            "pattern": "^[!-~]{8,30}$"
+        },
+    },
+    "required": ["Username", "Password"]
+})
+def register(json_data):
+    username = json_data.get('Username')
+    password = json_data.get('Password')
+
+    user_exists = User.query.filter_by(Username=username).first() is not None
+
+    if user_exists:
+        return jsonify(Msg="user_exists"), 400
+
+    # 创建新用户记录
+    new_user = User()
+    new_user.Username = username
+    new_user.LastLogout = datetime.utcnow()  # 记录登出时间
+    new_user.set_password(password)
+    db.session.add(new_user)
+    db.session.commit()
+
+    return jsonify(Msg="ok"), 200
+
+
+# Decorator for checking admin rights
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.IsAdmin:
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+# Decorator for checking student rights
+def student_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if current_user.IsAdmin:
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated_function
+
+
 # --- Question Management  ---
 @app.route('/admin_add', methods=['POST'])
+@login_required
+@admin_required
 @validate_json({
     "type": "object",
     "properties": {
@@ -84,6 +183,8 @@ def add_question(json_data):
 
 
 @app.route('/admin_update', methods=['POST'])
+@login_required
+@admin_required
 @validate_json({
     "type": "object",
     "properties": {
@@ -129,6 +230,8 @@ def update_question(json_data):
 
 
 @app.route('/admin_search', methods=['POST'])
+@login_required
+@admin_required
 @validate_json({
     "type": "object",
     "properties": {
@@ -170,6 +273,8 @@ def search_questions(json_data):
 
 
 @app.route('/admin_delete', methods=['POST'])
+@login_required
+@admin_required
 @validate_json({
     "type": "object",
     "properties": {
@@ -190,6 +295,8 @@ def delete_question(json_data):
 
 # --- Exercise Module  ---
 @app.route('/exercise', methods=['POST'])
+@login_required
+@student_required
 @validate_json({
     "type": "object",
     "properties": {
@@ -218,6 +325,8 @@ def get_exercise_questions(json_data):
 
 
 @app.route('/exercise_result', methods=['POST'])
+@login_required
+@student_required
 @validate_json({
     "type": "object",
     "properties": {
@@ -292,26 +401,52 @@ def send_css(filename):
 def send_img(filename):
     return send_from_directory(os.path.join(app.config['STATIC_FOLDER'], 'img'), path=filename)
 
-# Serve index page
-# Currently we don't have an index so comment the code
-# @app.route("/")
-# def hello():
-#    return send_from_directory(app.config['STATIC_FOLDER'], 'admin-add.html')
-
 
 @app.route('/admin-add.html')
+@login_required
+@admin_required
 def admin_add_page():
     return send_from_directory(app.config['STATIC_FOLDER'], 'admin-add.html')
 
 
 @app.route('/admin-search.html')
+@login_required
+@admin_required
 def admin_search_page():
     return send_from_directory(app.config['STATIC_FOLDER'], 'admin-search.html')
 
 
 @app.route('/admin-preview.html')
+@login_required
+@admin_required
 def admin_preview_page():
     return send_from_directory(app.config['STATIC_FOLDER'], 'admin-preview.html')
+
+
+@app.route('/select-subject.html')
+@login_required
+@student_required
+def select_subject_page():
+    return send_from_directory(app.config['STATIC_FOLDER'], 'select-subject.html')
+
+
+@app.route('/signin.html')
+def login_page():
+    if current_user.is_authenticated:
+        if current_user.IsAdmin:
+            return redirect(url_for('admin_search_page'))
+        return redirect(url_for('select_subject_page'))
+    return send_from_directory(app.config['STATIC_FOLDER'], 'signin.html')
+
+
+@app.route('/signup.html')
+def signup_page():
+    return send_from_directory(app.config['STATIC_FOLDER'], 'signup.html')
+
+
+@app.route('/')
+def index():
+    return redirect(url_for('login_page'))
 
 
 if __name__ == '__main__':

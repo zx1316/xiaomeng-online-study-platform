@@ -1,0 +1,29 @@
+html, body {
+    height: 100%;
+}
+
+main {
+    max-width: 330px;
+    padding: 1rem;
+}
+
+main .form-floating:focus-within {
+    z-index: 2;
+}
+
+main .floating-top-input {
+    margin-bottom: -1px;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+main .floating-middle-input {
+    margin-bottom: -1px;
+    border-radius: 0;
+}
+
+main .floating-bottom-input {
+    margin-bottom: 10px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
