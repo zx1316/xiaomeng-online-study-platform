@@ -119,7 +119,14 @@ def register(json_data):
     new_user.set_password(password)
     db.session.add(new_user)
     db.session.commit()
-
+    Uid = new_user.get_id()
+    print(Uid)
+    new_Math1 = Math1LearningStatus(Uid=Uid)
+    new_Math2 = Math2LearningStatus(Uid=Uid)
+    new_Pol = PolLearningStatus(Uid=Uid)
+    new_CS408 = CS408LearningStatus(Uid=Uid)
+    db.session.add_all([new_Math1, new_Math2, new_Pol, new_CS408])
+    db.session.commit()
     return jsonify(Msg="ok"), 200
 
 
@@ -294,6 +301,40 @@ def delete_question(json_data):
 
 
 # --- Exercise Module  ---
+@app.route('/subject', methods=['GET'])
+@login_required
+def get_subject():
+    uid = current_user.Uid
+    print(type(uid))
+    Math1 = Math1LearningStatus.query.filter_by(Uid=uid).first()
+    Math2 = Math2LearningStatus.query.filter_by(Uid=uid).first()
+    Pol = PolLearningStatus.query.filter_by(Uid=uid).first()
+    CS408 = CS408LearningStatus.query.filter_by(Uid=uid).first()
+    result = [
+        {
+            "Subject": '数学Ⅰ',
+            "Total": Math1.Total,
+            "Right": Math1.Right
+        },
+        {
+            "Subject": '数学Ⅱ',
+            "Total": Math2.Total,
+            "Right": Math2.Right
+        },
+        {
+            "Subject": '政治',
+            "Total": Pol.Total,
+            "Right": Pol.Right
+        },
+        {
+            "Subject": '计算机基础',
+            "Total": CS408.Total,
+            "Right": CS408.Right
+        }
+    ]
+    print(result)
+    return jsonify(result)
+
 @app.route('/exercise', methods=['POST'])
 @login_required
 @student_required
@@ -346,7 +387,8 @@ def get_exercise_questions(json_data):
     "required": ["Subject", "WrongQuestion"]
 })
 def submit_exercise_results(json_data):
-    uid = json_data.get('Uid')           # todo: 加入鉴权后不需要uid
+    #uid = json_data.get('Uid')           # todo: 加入鉴权后不需要uid
+    uid = current_user.Uid
     subject = json_data.get('Subject')
     total = json_data.get('Total')       # todo: 定死这个练习数量
     wrong_questions = json_data.get('WrongQuestion')
@@ -448,7 +490,15 @@ def signup_page():
 def index():
     return redirect(url_for('login_page'))
 
+def create_admin():
+    new_user = User()
+    new_user.Username = "admin_sxm"
+    new_user.set_password('sxmjs123')
+    db.session.add(new_user)
+    db.session.commit()
 
 if __name__ == '__main__':
     initialize_database()
     socketio.run(app, host='127.0.0.1', debug=True)
+    create_admin()
+
