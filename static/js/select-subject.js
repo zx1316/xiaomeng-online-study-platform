@@ -1,18 +1,18 @@
 // 假设这是从服务器接收到的JSON数据
-// document.addEventListener('DOMContentLoaded', () =>
-//     fetch('subject')
-//         .then(response => response.json())
-//         .then(subjects => {
-//             // 调用函数来处理和显示数据
-//             showSubjects(subjects);
-//         })
-//         .catch(error => console.error('Error:', error))
-// )
-var subjects = [
-    {"subject": "数学", "total": 100, "right": 80},
-    {"subject": "语文", "total": 90, "right": 81},
-    // ... 其他科目
-];
+document.addEventListener('DOMContentLoaded', () =>
+    fetch('subject')
+        .then(response => response.json())
+        .then(subjects => {
+            // 调用函数来处理和显示数据
+            showSubjects(subjects);
+        })
+        .catch(error => console.error('Error:', error))
+)
+// var subjects = [
+//     {"subject": "数学", "total": 100, "right": 80},
+//     {"subject": "语文", "total": 90, "right": 81},
+//     // ... 其他科目
+// ];
 showSubjects(subjects)
 function showSubjects(subjects){
 
@@ -23,7 +23,7 @@ function showSubjects(subjects){
     subjects.forEach(function(item) {
         // 创建a标签
         var a = document.createElement('a');
-        a.href = `/exercise?querysubject=${item.subject}`;
+        a.href = `/subject-exercise.html?querysubject=${item.Subject}`;
         a.className = "list-group-item list-group-item-action d-flex gap-3 py-3";
         a.setAttribute("aria-current", "true");
 
@@ -46,12 +46,17 @@ function showSubjects(subjects){
         // 创建h6标签
         var h6 = document.createElement('h3');
         h6.className = "mb-0";
-        h6.textContent = item.subject;
+        h6.textContent = item.Subject;
 
         // 创建p标签
         var p = document.createElement('p');
         p.className = "mb-0 opacity-75";
-        p.textContent = `总体数:${item.total}, 正确率:${item.right / item.total}`
+        if(item.Total!=0){
+            p.textContent = `总体数:${item.Total}, 正确率:${item.Right / item.Total}`
+        }else{
+            p.textContent = `总体数:${item.Total}, 正确率:无`
+        }
+        
 
         // 将h6和p标签添加到内部div中
         innerDiv.appendChild(h6);
