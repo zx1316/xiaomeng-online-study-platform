@@ -34,6 +34,7 @@ def initialize_database():
             new_user = User()
             new_user.Username = "admin_sxm"
             new_user.set_password('sxmjs123')
+            new_user.IsAdmin = True
             db.session.add(new_user)
             db.session.commit()
         except Exception:
