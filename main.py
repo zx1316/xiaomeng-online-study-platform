@@ -29,6 +29,15 @@ socketio = SocketIO(app)
 def initialize_database():
     with app.app_context():
         db.create_all()
+        # 至少创建一个管理员账号，有了也没关系
+        try:
+            new_user = User()
+            new_user.Username = "admin_sxm"
+            new_user.set_password('sxmjs123')
+            db.session.add(new_user)
+            db.session.commit()
+        except Exception:
+            pass
 
 
 # 用于优雅验证json的包装器
@@ -335,6 +344,7 @@ def get_subject():
     print(result)
     return jsonify(result)
 
+
 @app.route('/exercise', methods=['POST'])
 @login_required
 @student_required
@@ -347,7 +357,7 @@ def get_subject():
 })
 def get_exercise_questions(json_data):
     subject = json_data.get('Subject')
-    num_questions = json_data.get('Number')  # todo: 定死一个值，待定
+    num_questions = 10  # 定死一个值
 
     questions = Question.query.filter_by(Subject=subject).order_by(func.random()).limit(num_questions).all()
     result = [
@@ -387,10 +397,9 @@ def get_exercise_questions(json_data):
     "required": ["Subject", "WrongQuestion"]
 })
 def submit_exercise_results(json_data):
-    #uid = json_data.get('Uid')           # todo: 加入鉴权后不需要uid
     uid = current_user.Uid
     subject = json_data.get('Subject')
-    total = json_data.get('Total')       # todo: 定死这个练习数量
+    total = 10      # 定死这个练习数量
     wrong_questions = json_data.get('WrongQuestion')
 
     right_cnt = total - len(wrong_questions)
@@ -472,6 +481,13 @@ def select_subject_page():
     return send_from_directory(app.config['STATIC_FOLDER'], 'select-subject.html')
 
 
+@app.route('/subject-exercise.html')
+@login_required
+@student_required
+def subject_exercise_page():
+    return send_from_directory(app.config['STATIC_FOLDER'], 'subject-exercise.html')
+
+
 @app.route('/signin.html')
 def login_page():
     if current_user.is_authenticated:
@@ -490,15 +506,7 @@ def signup_page():
 def index():
     return redirect(url_for('login_page'))
 
-def create_admin():
-    new_user = User()
-    new_user.Username = "admin_sxm"
-    new_user.set_password('sxmjs123')
-    db.session.add(new_user)
-    db.session.commit()
 
 if __name__ == '__main__':
     initialize_database()
     socketio.run(app, host='127.0.0.1', debug=True)
-    create_admin()
-
