@@ -9,28 +9,21 @@
         <link href="css/list-groups.css" rel="stylesheet">
       </head>
 <body>
-    <div class="d-flex flex-column p-4 gap-4 py-md-5 align-items-center justify-content-center">
+    <div class="d-flex flex-column p-3 gap-3 align-items-center justify-content-center">
         <!--Show Answer Process-->
-        <div class="bd-cheatsheet container-fluid bg-body">
-          <div class="bd-example m-0 border-0">
-            <div class="progress-stacked" id="progress-stack">
+        <div class="container bg-body px-0">
+            <div class="m-0 border-0 pb-3">
+                <div class="progress-stacked" id="progress-stack"></div>
             </div>
-          </div>
-        </div>
-
-        <!--Show Question-->
-        <div class="accordion-body">
-            <p class="card-text" id = "question-text"></p>
+            <!--Show Question-->
+            <p class="text-center" id="question-text"></p>
         </div>
 
         <!--Show Selections or AnswerBrowser-->
-        <div class="d-flex flex-column flex-md-row p-4 gap-4 py-md-5 align-items-center justify-content-center" id="answer-div">
-        </div>
+        <div class="d-flex flex-column flex-md-row w-100 gap-4 align-items-center justify-content-center" id="answer-div"></div>
 
         <!--Show Buttom-Control -->
-        <div class="bd-example-snippet bd-code-snippet">
-            <div class="bd-example m-0 border-0" id="buttom-control-div">   
-            </div>
+        <div class="bd-example m-0 border-0" id="buttom-control-div">
         </div>
     </div>
     <script src="js/subject-exercise.js"> </script>

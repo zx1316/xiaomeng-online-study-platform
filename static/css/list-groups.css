@@ -4,6 +4,11 @@
   margin-inline: 1.5rem;
 }
 
+.blank-input-frame {
+  width: 100%;
+  max-width: 460px;
+}
+
 .form-check-input:checked + .form-checked-content {
   opacity: .5;
 }
