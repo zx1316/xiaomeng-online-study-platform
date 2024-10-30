@@ -239,9 +239,13 @@ function getCookie(name) {
             if (target.textContent === '«') {
                 currentPage = 1
             } else if (target.textContent === '‹') {
-                currentPage--
+                if (currentPage > 1) {
+                    currentPage--
+                }
             } else if (target.textContent === '›') {
-                currentPage++
+                if (currentPage < parseInt(sessionStorage.getItem('totalPage'))) {
+                    currentPage++
+                }
             } else if (target.textContent === '»') {
                 currentPage = parseInt(sessionStorage.getItem('totalPage'))
             } else {
