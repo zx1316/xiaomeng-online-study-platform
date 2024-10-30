@@ -6,15 +6,7 @@
     <title>题目添加 · 小萌在线学习平台</title>
     <link rel="stylesheet" href="https://cdn.staticfile.net/twitter-bootstrap/5.3.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="css/theme-switch.css">
-    <style>
-        body {
-            padding-top: 4.5rem;
-        }
-
-        .navbar .dropdown-toggle::after {
-            color: white;
-        }
-    </style>
+    <link rel="stylesheet" href="css/my-topfix-navbar.css">
     <script src="js/color-modes.js"></script>
 </head>
 <body class="bg-body-tertiary">
@@ -98,7 +90,7 @@
 </nav>
 
 <!--正文-->
-<div class="container">
+<div class="container bg-body p-3 p-md-4">
     <form id="add-form" class="d-flex flex-column">
         <div class="mb-4">
             <label for="subject-select" class="form-label h4">科目</label>
@@ -182,7 +174,7 @@
             <label class="h4 form-label">图片<button id="resolve-btn" class="btn btn-outline-primary ms-2">解析占位符</button></label>
             <div id="imgs" class="d-flex flex-column gap-3"></div>
         </div>
-        <div class="mb-4">
+        <div class="mb-1 text-center">
             <input id="submit-btn" type="submit" value="添加题目！" class="btn btn-primary text-nowrap">
         </div>
     </form>

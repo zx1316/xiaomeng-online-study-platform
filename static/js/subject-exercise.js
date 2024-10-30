@@ -39,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         questionCount.innerText = `${current}/10`;
         const question = questionArr[current - 1];
-        // console.log(question.Question.replace(/%%%(.+?)@@@/g, '<img class="question-img" src="img/q/$1">'));
         questionText.innerHTML = question.Question.replace(/%%%(.+?)@@@/g, '<img class="question-img" src="img/q/$1">');
         if (question.SelectionA === null) {
             // 填空题
@@ -251,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
     feedbackObj.WrongQuestion = [];
     fetch('exercise', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json',},
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({"Subject": subject})
     })
         .then(response => response.json())
@@ -260,5 +259,5 @@ document.addEventListener('DOMContentLoaded', () => {
             questionArr = question_list;
             updateExerciseUI();
         })
-        .catch(error => console.error('Error:', error))
+        .catch(error => console.error('Error:', error));
 });
