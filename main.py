@@ -438,6 +438,113 @@ def submit_exercise_results(json_data):
     return '', 200
 
 
+# --- Wrong Question Book Module  ---
+@app.route('/search_wrong', methods=['POST'])
+@login_required
+@student_required
+@validate_json({
+    "type": "object",
+    "properties": {
+        "Subject": {"type": "string"},
+        "KeyWord": {"type": "string"},
+        "Page": {"type": "integer"},
+        "Size": {"type": "integer"}
+    },
+    "required": ["Subject", "KeyWord", "Page", "Size"]
+})
+def get_wrong_questions(json_data):
+    uid = current_user.Uid
+    subject = json_data.get('Subject')
+    keyword = json_data.get('KeyWord')
+    page = json_data.get('Page')
+    page_size = json_data.get('Size')
+    query = db.session.query(
+        WrongAnswer.Wid,
+        Question.Qid,
+        Question.Subject,
+        Question.Question,
+        Question.SelectionA,
+        Question.SelectionB,
+        Question.SelectionC,
+        Question.SelectionD,
+        Question.Answer,
+        WrongAnswer.WrongAnswer,
+        WrongAnswer.Notes
+    ).join(Question, WrongAnswer.Qid == Question.Qid).filter(WrongAnswer.Uid == uid)
+
+    if subject != '任意':
+        query = query.filter(Question.Subject == subject)
+    if keyword:
+        query = query.filter(Question.Question.like(f'%{keyword}%'))
+
+    # 分页
+    paginated = query.paginate(page=page, per_page=page_size)
+
+    # 格式化结果
+    result = {
+        "Total": paginated.total,
+        "Questions": [
+            {
+                "Wid": item.Wid,
+                "Qid": item.Qid,
+                "Subject": item.Subject,
+                "Question": item.Question,
+                "SelectionA": item.SelectionA,
+                "SelectionB": item.SelectionB,
+                "SelectionC": item.SelectionC,
+                "SelectionD": item.SelectionD,
+                "Answer": json.loads(item.Answer),
+                "WrongAnswer": item.WrongAnswer,
+                "Notes": item.Notes
+            }
+            for item in paginated.items
+        ]
+    }
+
+    return jsonify(result)
+
+
+@app.route('/add_notes', methods=['POST'])
+@login_required
+@student_required
+@validate_json({
+    "type": "object",
+    "properties": {
+        "Wid": {"type": "integer"},
+        "Notes": {"type": "string"}
+    },
+    "required": ["Wid", "Notes"]
+})
+def add_wrong_notes(json_data):
+    wronganswer = WrongAnswer.query.filter_by(Wid=json_data['Wid']).first()
+    if not wronganswer:
+        return jsonify({"Msg": "Wrong answer not found"}), 400
+    wronganswer.Notes = json_data['Notes']
+    db.session.commit()
+    return '', 200
+
+
+@app.route('/delete_wrong', methods=['POST'])
+@login_required
+@student_required
+@validate_json({
+    "type": "object",
+    "properties": {
+        "Wid": {"type": "integer"}
+    },
+    "required": ["Wid"]
+})
+def delete_wrong(json_data):
+    wid = json_data.get('Wid')
+    wrong = WrongAnswer.query.filter_by(Wid=wid).first()
+    if wrong:
+        db.session.delete(wrong)
+        db.session.commit()
+        return '', 200
+    else:
+        return jsonify({"Msg": "Wrong answer not found"}), 400
+
+
 # static res
 @app.route('/js/<path:filename>')
 def send_js(filename):
@@ -487,6 +594,21 @@ def select_subject_page():
 @student_required
 def subject_exercise_page():
     return send_from_directory(app.config['STATIC_FOLDER'], 'subject-exercise.html')
+
+
+@app.route('/search-wrong.html')
+@login_required
+@student_required
+def search_wrong_page():
+    return send_from_directory(app.config['STATIC_FOLDER'], 'search-wrong.html')
+
+
+# 不确定是否需要独立页面
+@app.route('/add-notes.html')
+@login_required
+@student_required
+def add_notes_page():
+    return send_from_directory(app.config['STATIC_FOLDER'], 'add-notes.html')
 
 
 @app.route('/signin.html')
