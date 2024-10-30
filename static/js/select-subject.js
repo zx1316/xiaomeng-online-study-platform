@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <img src="/img/subject/${item.Subject}.png" alt="${item.Subject}" width="64" height="64" class="rounded-circle flex-shrink-0">
                     <div class="flex-grow-1 d-flex flex-column gap-2">
                         <h4 class="mb-0">${item.Subject}</h4>
-                        <p class="mb-0 opacity-75">练习数: ${item.Total}，正确率: ${item.Total === 0 ? '无' : item.Right / item.Total}</p>
+                        <p class="mb-0 opacity-75">练习数: ${item.Total}，正确率: ${item.Total === 0 ? '无' : (item.Right / item.Total * 100).toFixed(2)+"%"}</p>
                     </div>
                     <i class="fa fa-angle-right opacity-75" style="font-size: 24px"></i>
                 </div>

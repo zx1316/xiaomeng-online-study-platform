@@ -42,8 +42,9 @@ class Question(db.Model):
 
 
 class WrongAnswer(db.Model):
-    Uid = db.Column(db.Integer, db.ForeignKey('user.Uid'), primary_key=True)
-    Qid = db.Column(db.Integer, db.ForeignKey('question.Qid'), primary_key=True)
+    Wid = db.Column(db.Integer,primary_key=True)
+    Uid = db.Column(db.Integer, db.ForeignKey('user.Uid'))
+    Qid = db.Column(db.Integer, db.ForeignKey('question.Qid'))
     WrongAnswer = db.Column(db.String(256))
     Notes = db.Column(db.String(1024))
 

@@ -323,23 +323,23 @@ def get_subject():
     result = [
         {
             "Subject": '数学Ⅰ',
-            "Total": Math1.Total,
-            "Right": Math1.Right
+            "Total": Math1.ExerciseTotal,
+            "Right": Math1.ExerciseRight
         },
         {
             "Subject": '数学Ⅱ',
-            "Total": Math2.Total,
-            "Right": Math2.Right
+            "Total": Math2.ExerciseTotal,
+            "Right": Math2.ExerciseRight
         },
         {
             "Subject": '政治',
-            "Total": Pol.Total,
-            "Right": Pol.Right
+            "Total": Pol.ExerciseTotal,
+            "Right": Pol.ExerciseRight
         },
         {
             "Subject": '计算机基础',
-            "Total": CS408.Total,
-            "Right": CS408.Right
+            "Total": CS408.ExerciseTotal,
+            "Right": CS408.ExerciseRight
         }
     ]
     print(result)
