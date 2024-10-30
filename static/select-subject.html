@@ -1,19 +1,58 @@
 <!doctype html>
 <html lang="zh">
-    <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta charset="utf-8">
-        <title>小萌在线学习平台</title>
-        <link href="https://cdn.staticfile.net/twitter-bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
-        <link href="css/list-groups.css" rel="stylesheet">
-        <script src="js/color-modes.js"></script>
-    </head>
-    <body>
-        <div class="d-flex flex-column flex-md-row p-4 gap-4 py-md-5 align-items-center justify-content-center">
-            <div class="list-group" id="subject-list">
-
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <title>小萌在线学习平台</title>
+    <link href="https://cdn.staticfile.net/twitter-bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.staticfile.net/font-awesome/4.7.0/css/font-awesome.css">
+    <link href="css/list-groups.css" rel="stylesheet">
+    <link href="css/my-topfix-navbar.css" rel="stylesheet">
+    <script src="js/color-modes.js"></script>
+</head>
+<body class="bg-body">
+    <!--导航栏-->
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">小萌在线学习平台</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">个人信息</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">练习</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">对战</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">错题本</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown">
+                        <a href="#" class="d-block link-body-emphasis text-decoration-none dropdown-toggle" id="user-dropdown-trigger" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="img/default-avatar.png" alt="mdo" width="32" height="32" class="rounded-circle">
+                        </a>
+                        <ul class="dropdown-menu text-small" id="user-dropdown-menu">
+                            <li><h6 class="dropdown-header" id="username"></h6></li>
+                            <li><h6 class="dropdown-header">UID：<span id="uid"></span></h6></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" id="logout-link" href="#">登出</a></li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
-        <script src="js/select-subject.js"></script>
-    </body>
+    </nav>
+    <div class="container d-flex flex-column align-items-center my-4">
+        <div class="list-group list-group-md" id="subject-list"></div>
+    </div>
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/select-subject.js"></script>
+</body>
 </html>

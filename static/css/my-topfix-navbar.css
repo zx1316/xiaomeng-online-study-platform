@@ -1,0 +1,8 @@
+body {
+    padding-top: 4.5rem;
+    padding-bottom: 1rem;
+}
+
+.navbar .dropdown-toggle::after {
+    color: white;
+}

@@ -1,30 +1,53 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh">
-    <head><script src="js/color-modes.js"></script>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>练习 · 小萌在线学习平台</title>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
-        <link href="css/bootstrap.min.css" rel="stylesheet">
-        <link href="css/list-groups.css" rel="stylesheet">
-      </head>
-<body>
-    <div class="d-flex flex-column p-3 gap-3 align-items-center justify-content-center">
-        <!--Show Answer Process-->
-        <div class="container bg-body px-0">
-            <div class="m-0 border-0 pb-3">
-                <div class="progress-stacked" id="progress-stack"></div>
-            </div>
-            <!--Show Question-->
-            <p class="text-center" id="question-text"></p>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>>练习 · 小萌在线学习平台</title>
+    <link href="https://cdn.staticfile.net/twitter-bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/list-groups.css" rel="stylesheet">
+    <style>
+        .question-img {
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body class="bg-body">
+    <div class="container py-3 d-flex flex-column gap-3 align-items-center">
+        <!--Show answer process-->
+        <div class="progress-stacked w-100" id="progress-stack"></div>
+        <!--Show question count-->
+        <div class="answer-container d-flex justify-content-between align-items-center">
+            <button class="btn btn-outline-primary" id="prev-btn" style="visibility: hidden">上一题</button>
+            <span id="question-count" class="h2 mb-0">1/10</span>
+            <button class="btn btn-outline-primary" id="next-btn" style="visibility: hidden">下一题</button>
         </div>
 
-        <!--Show Selections or AnswerBrowser-->
-        <div class="d-flex flex-column flex-md-row w-100 gap-4 align-items-center justify-content-center" id="answer-div"></div>
-
-        <!--Show Buttom-Control -->
-        <div class="bd-example m-0 border-0" id="buttom-control-div">
+        <!--Show question-->
+        <p id="question-text"></p>
+        <!--选择题作答-->
+        <div id="selection-area" class="list-group list-group-checkable d-grid gap-2 border-0 visually-hidden">
+            <input class="list-group-item-check pe-none" type="radio" name="listGroupCheckableRadios" id="selection-a-radio" value="A">
+            <label class="list-group-item rounded-3 py-3" for="selection-a-radio" id="selection-a"></label>
+            <input class="list-group-item-check pe-none" type="radio" name="listGroupCheckableRadios" id="selection-b-radio" value="B">
+            <label class="list-group-item rounded-3 py-3" for="selection-b-radio" id="selection-b"></label>
+            <input class="list-group-item-check pe-none" type="radio" name="listGroupCheckableRadios" id="selection-c-radio" value="C">
+            <label class="list-group-item rounded-3 py-3" for="selection-c-radio" id="selection-c"></label>
+            <input class="list-group-item-check pe-none" type="radio" name="listGroupCheckableRadios" id="selection-d-radio" value="D">
+            <label class="list-group-item rounded-3 py-3" for="selection-d-radio" id="selection-d"></label>
         </div>
+        <!--填空题作答-->
+        <div class="form-floating answer-container visually-hidden" id="blank-area">
+            <input class="form-control" id="blank-input">
+            <label class="list-group-item rounded-3 py-3" for="blank-input">你的答案</label>
+        </div>
+        <!--填空题正确答案-->
+        <div class="form-floating answer-container visually-hidden" id="blank-correct-area">
+            <input class="form-control text-success" id="blank-correct" disabled="disabled">
+            <label class="list-group-item rounded-3 py-3" for="blank-correct">正确答案</label>
+        </div>
+        <button class="btn btn-primary" id="submit-btn" style="min-width: 5em">提交</button>
     </div>
-    <script src="js/subject-exercise.js"> </script>
+    <script src="js/subject-exercise.js"></script>
 </body>
+</html>

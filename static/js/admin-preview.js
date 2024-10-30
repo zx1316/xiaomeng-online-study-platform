@@ -1,4 +1,3 @@
-const re = /%%%.+?@@@/g
 document.addEventListener('DOMContentLoaded', () => {
     const question = document.getElementById('question');
     const subject = document.getElementById('subject');
@@ -27,33 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         return null;
-    }
-
-    // 获取所有的占位符
-    function resolveImg1(str1, str2, str3, str4, str5) {
-        let arr = str1.match(re)
-        if (arr === null) {
-            arr = []
-        }
-        let arr1 = str2.match(re)
-        if (arr1 !== null) {
-            arr = arr.concat(arr1)
-        }
-        arr1 = str3.match(re)
-        if (arr1 !== null) {
-            arr = arr.concat(arr1)
-        }
-        arr1 = str4.match(re)
-        if (arr1 !== null) {
-            arr = arr.concat(arr1)
-        }
-        arr1 = str5.match(re)
-        if (arr1 !== null) {
-            arr = arr.concat(arr1)
-        }
-        arr = arr.map((str) => str.substring(3, str.length - 3))                             // 干掉开头结尾的字符
-            .filter((item, index, arr) => arr.indexOf(item) === index)      // 去重
-        return arr
     }
 
     deleteBtn.addEventListener('click', () => {
@@ -115,25 +87,15 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectionCStr = sessionStorage.getItem('SelectionC')
     let selectionDStr = sessionStorage.getItem('SelectionD')
     let subjectStr = sessionStorage.getItem('Subject')
-    const arr = resolveImg1(questionStr, selectionAStr, selectionBStr, selectionCStr, selectionDStr)
-    arr.forEach((item) => {
-        const re1 = new RegExp(`%%%${item}@@@`, 'g')
-        const replaceStr = `<img class="question-img" src="img/q/${item}">`
-        questionStr = questionStr.replace(re1, replaceStr)
-        selectionAStr = selectionAStr.replace(re1, replaceStr)
-        selectionBStr = selectionBStr.replace(re1, replaceStr)
-        selectionCStr = selectionCStr.replace(re1, replaceStr)
-        selectionDStr = selectionDStr.replace(re1, replaceStr)
-    })
-    question.innerHTML = questionStr        // 因为有图，所以用innerHTML
+    question.innerHTML = questionStr.replace(/%%%(.+?)@@@/g, '<img class="question-img" src="img/q/$1">')       // 因为有图，所以用innerHTML
     subject.innerText = subjectStr
     if (selectionAStr === '') {
         selection.classList.add('visually-hidden')
     } else {
-        selectionA.innerHTML = selectionAStr
-        selectionB.innerHTML = selectionBStr
-        selectionC.innerHTML = selectionCStr
-        selectionD.innerHTML = selectionDStr
+        selectionA.innerHTML = selectionAStr.replace(/%%%(.+?)@@@/g, '<img class="question-img" src="img/q/$1">')
+        selectionB.innerHTML = selectionBStr.replace(/%%%(.+?)@@@/g, '<img class="question-img" src="img/q/$1">')
+        selectionC.innerHTML = selectionCStr.replace(/%%%(.+?)@@@/g, '<img class="question-img" src="img/q/$1">')
+        selectionD.innerHTML = selectionDStr.replace(/%%%(.+?)@@@/g, '<img class="question-img" src="img/q/$1">')
     }
     const answerCount = parseInt(sessionStorage.getItem('AnswerCount'));
     for (let i = 0; i < answerCount; i++) {

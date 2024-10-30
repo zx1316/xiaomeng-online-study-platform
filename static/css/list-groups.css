@@ -4,7 +4,11 @@
   margin-inline: 1.5rem;
 }
 
-.blank-input-frame {
+.list-group-md {
+  max-width: 650px;
+}
+
+.answer-container {
   width: 100%;
   max-width: 460px;
 }
