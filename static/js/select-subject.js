@@ -2,6 +2,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const username = document.getElementById('username');
     const uid = document.getElementById('uid');
     const logoutLink = document.getElementById('logout-link');
+    const userDropdownTrigger = document.getElementById('user-dropdown-trigger');
+    const userDropdownMenu = document.getElementById('user-dropdown-menu');
+
     function showSubjects(subjects){
         // 获取要插入内容的容器
         const listGroup = document.getElementById('subject-list');
@@ -19,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <img src="/img/subject/${item.Subject}.png" alt="${item.Subject}" width="64" height="64" class="rounded-circle flex-shrink-0">
                     <div class="flex-grow-1 d-flex flex-column gap-2">
                         <h4 class="mb-0">${item.Subject}</h4>
-                        <p class="mb-0 opacity-75">练习数: ${item.Total}，正确率: ${item.Total === 0 ? '无' : (item.Right / item.Total * 100).toFixed(2)+"%"}</p>
+                        <p class="mb-0 opacity-75">做题数: ${item.Total}，正确率: ${item.Total === 0 ? '无' : (item.Right / item.Total * 100).toFixed(2) + '%'}</p>
                     </div>
                     <i class="fa fa-angle-right opacity-75" style="font-size: 24px"></i>
                 </div>
@@ -43,6 +46,17 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     }
 
+    // 用户下拉栏位置偏移
+    userDropdownTrigger.addEventListener('shown.bs.dropdown', () => {
+        const rect = userDropdownMenu.getBoundingClientRect()
+        if (rect.x + rect.width > window.innerWidth) {
+            userDropdownMenu.style.transform = `translateX(${window.innerWidth - rect.x - rect.width}px)`
+        }
+    });
+    userDropdownTrigger.addEventListener('hidden.bs.dropdown', () => {
+        userDropdownMenu.style.transform = 'none'
+    });
+
     // 登出
     logoutLink.addEventListener('click', (e) => {
         fetch('/logout', {method: 'POST'})
@@ -64,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 调用函数来处理和显示数据
             showSubjects(subjects);
         })
-        .catch(error => console.error('Error:', error))
+        .catch(error => console.error('Error:', error));
 })
 // 假设这是从服务器接收到的JSON数据
 // var subjects = [
