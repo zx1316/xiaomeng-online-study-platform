@@ -337,7 +337,7 @@ def get_subject():
             "Right": Pol.ExerciseRight
         },
         {
-            "Subject": '计算机基础',
+            "Subject": '计算机学科专业基础综合',
             "Total": CS408.ExerciseTotal,
             "Right": CS408.ExerciseRight
         }

@@ -9,7 +9,7 @@ db = SQLAlchemy()
 class User(UserMixin, db.Model):
     Uid = db.Column(db.Integer, primary_key=True)
     Username = db.Column(db.String(32), nullable=False, unique=True)
-    Password = db.Column(db.String(128), nullable=False)
+    Password = db.Column(db.String(192), nullable=False)
     IsAdmin = db.Column(db.Boolean, default=False)
     LastLogout = db.Column(db.DateTime)
 
@@ -45,8 +45,8 @@ class WrongAnswer(db.Model):
     Wid = db.Column(db.Integer,primary_key=True)
     Uid = db.Column(db.Integer, db.ForeignKey('user.Uid'))
     Qid = db.Column(db.Integer, db.ForeignKey('question.Qid'))
-    WrongAnswer = db.Column(db.String(256))
-    Notes = db.Column(db.String(1024))
+    WrongAnswer = db.Column(db.String(256), nullable=False)
+    Notes = db.Column(db.String(1024), default='', nullable=False)
 
 
 class Math1LearningStatus(db.Model):
