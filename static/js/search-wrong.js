@@ -242,7 +242,6 @@ document.addEventListener('DOMContentLoaded', () => {
         })
     })
 
-
     // 提交表单
     form.onsubmit = function(event) {
         event.preventDefault()

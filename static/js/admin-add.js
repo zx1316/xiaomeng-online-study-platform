@@ -407,6 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 登出
     logoutLink.addEventListener('click', (e) => {
+        sessionStorage.clear();
         fetch('/logout', {method: 'POST'})
             .then(response => response.text())
             .then(result => {

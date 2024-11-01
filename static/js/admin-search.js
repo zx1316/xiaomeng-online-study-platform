@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const uid = document.getElementById('uid')
     const logoutLink = document.getElementById('logout-link')
 
-function getCookie(name) {
+    function getCookie(name) {
         const cookieArray = document.cookie.split(';'); // 分割cookie字符串
         // 遍历cookie数组
         for (let i = 0; i < cookieArray.length; i++) {
@@ -102,7 +102,7 @@ function getCookie(name) {
             li.className = 'list-group-item list-group-item-action'
             li.innerHTML = `
                 <div class="d-grid gap-2 d-md-flex my-2">
-                    <div class="flex-grow-1 cursor-pointer">
+                    <div class="flex-grow-1 cursor-pointer" id="q-div-${item.Qid}">
                         <p>${newQuestion}</p>
                         <p class="small mb-0">QID：${item.Qid}</p>
                         <p class="small mb-2">科目：${item.Subject}</p>
@@ -157,11 +157,10 @@ function getCookie(name) {
         }
     }
 
-
     resultList.addEventListener('click', (e) => {
         const target = e.target;
         if (target.tagName === 'BUTTON') {
-            const qid = target.parentNode.parentNode.querySelector('.cursor-pointer').querySelector('.mb-0').innerText.substring(4)
+            const qid = target.parentNode.parentNode.querySelector('.cursor-pointer').id.substring(6)
             if (target.classList.contains('btn-outline-danger')) {
                 // 删除题目并二次确认
                 document.getElementById('delete-qid-span').innerText = qid
@@ -173,15 +172,11 @@ function getCookie(name) {
             }
         } else if (target.tagName === 'DIV' && target.classList.contains('cursor-pointer')) {
             // 查看详情
-            setSessionStorageForJump(target.querySelector('.mb-0').innerText.substring(4))
+            setSessionStorageForJump(target.id.substring(6))
             location.href = 'admin-preview.html'
         } else if (target.tagName === 'P') {
             // 查看详情
-            if (target.classList.contains('mb-0')) {
-                setSessionStorageForJump(target.innerText.substring(4))
-            } else {
-                setSessionStorageForJump(target.parentNode.querySelector('.mb-0').innerText.substring(4))
-            }
+            setSessionStorageForJump(target.parentNode.id.substring(6))
             location.href = 'admin-preview.html'
         }
     })
@@ -283,6 +278,7 @@ function getCookie(name) {
 
     // 登出
     logoutLink.addEventListener('click', (e) => {
+        sessionStorage.clear();
         fetch('/logout', {method: 'POST'})
             .then(response => response.text())
             .then(result => {
@@ -311,12 +307,13 @@ function getCookie(name) {
     }
 
     // 如果从预览界面删除后返回
-    if (new URLSearchParams(window.location.search).get('from_delete') !== null) {
+    if (sessionStorage.getItem('fromDelete') !== null) {
         // 视情况调整页号
         let currentPage = parseInt(sessionStorage.getItem('currentPage'))
         if (searchResult.length <= 1 && currentPage > 1) {
             sessionStorage.setItem('currentPage', (currentPage - 1).toString())
         }
+        sessionStorage.removeItem('fromDelete');        // 删除标记
     }
 
     // 进来默认先搜索一次

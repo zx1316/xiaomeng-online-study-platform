@@ -1,3 +1,5 @@
+const re = /%%%(.+?)@@@/g;
+
 document.addEventListener('DOMContentLoaded', () => {
     const question = document.getElementById('question');
     const subject = document.getElementById('subject');
@@ -54,7 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         })
         .then(result => {
-            location.href = 'admin-search.html?from_delete=1'
+            sessionStorage.setItem('fromDelete', '1');  // 设置删除标识
+            location.href = 'admin-search.html'
         })
         .catch(error => {
             alert('服务器错误：' + error.message)
@@ -67,6 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 登出
     logoutLink.addEventListener('click', (e) => {
+        sessionStorage.clear();
         fetch('/logout', {method: 'POST'})
             .then(response => response.text())
             .then(result => {
@@ -87,15 +91,15 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectionCStr = sessionStorage.getItem('SelectionC')
     let selectionDStr = sessionStorage.getItem('SelectionD')
     let subjectStr = sessionStorage.getItem('Subject')
-    question.innerHTML = questionStr.replace(/%%%(.+?)@@@/g, '<img class="question-img" src="img/q/$1">')       // 因为有图，所以用innerHTML
+    question.innerHTML = questionStr.replace(re, '<img class="question-img" src="img/q/$1">')       // 因为有图，所以用innerHTML
     subject.innerText = subjectStr
     if (selectionAStr === '') {
         selection.classList.add('visually-hidden')
     } else {
-        selectionA.innerHTML = selectionAStr.replace(/%%%(.+?)@@@/g, '<img class="question-img" src="img/q/$1">')
-        selectionB.innerHTML = selectionBStr.replace(/%%%(.+?)@@@/g, '<img class="question-img" src="img/q/$1">')
-        selectionC.innerHTML = selectionCStr.replace(/%%%(.+?)@@@/g, '<img class="question-img" src="img/q/$1">')
-        selectionD.innerHTML = selectionDStr.replace(/%%%(.+?)@@@/g, '<img class="question-img" src="img/q/$1">')
+        selectionA.innerHTML = selectionAStr.replace(re, '<img class="question-img" src="img/q/$1">')
+        selectionB.innerHTML = selectionBStr.replace(re, '<img class="question-img" src="img/q/$1">')
+        selectionC.innerHTML = selectionCStr.replace(re, '<img class="question-img" src="img/q/$1">')
+        selectionD.innerHTML = selectionDStr.replace(re, '<img class="question-img" src="img/q/$1">')
     }
     const answerCount = parseInt(sessionStorage.getItem('AnswerCount'));
     for (let i = 0; i < answerCount; i++) {
