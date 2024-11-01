@@ -446,16 +446,16 @@ def submit_exercise_results(json_data):
     "type": "object",
     "properties": {
         "Subject": {"type": "string"},
-        "KeyWord": {"type": "string"},
+        "Keyword": {"type": "string"},
         "Page": {"type": "integer"},
         "Size": {"type": "integer"}
     },
-    "required": ["Subject", "KeyWord", "Page", "Size"]
+    "required": ["Subject", "Keyword", "Page", "Size"]
 })
 def get_wrong_questions(json_data):
     uid = current_user.Uid
     subject = json_data.get('Subject')
-    keyword = json_data.get('KeyWord')
+    keyword = json_data.get('Keyword')
     page = json_data.get('Page')
     page_size = json_data.get('Size')
     query = db.session.query(
