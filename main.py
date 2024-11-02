@@ -604,11 +604,11 @@ def search_wrong_page():
 
 
 # 不确定是否需要独立页面
-@app.route('/add-notes.html')
+@app.route('/wrong-detail.html')
 @login_required
 @student_required
 def add_notes_page():
-    return send_from_directory(app.config['STATIC_FOLDER'], 'add-notes.html')
+    return send_from_directory(app.config['STATIC_FOLDER'], 'wrong-detail.html')
 
 
 @app.route('/signin.html')
