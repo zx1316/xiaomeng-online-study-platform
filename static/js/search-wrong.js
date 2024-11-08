@@ -11,8 +11,10 @@ const resultP = document.getElementById('result-p');
 const resultList = document.getElementById('result-list');
 const form = document.getElementById('search-form');
 const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+
 const username = document.getElementById('username');
 const uid = document.getElementById('uid');
+const userAvatar = document.getElementById('user-avatar');
 const logoutLink = document.getElementById('logout-link');
 
 function getCookie(name) {
@@ -284,6 +286,7 @@ logoutLink.addEventListener('click', (e) => {
 
 username.innerText = getCookie('username');
 uid.innerText = getCookie('uid');
+userAvatar.src = `img/user/${uid.innerText}.png`;
 
 // 如果没有会话存储，设置默认值
 if (sessionStorage.getItem('currentPage') === null) {

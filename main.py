@@ -8,6 +8,7 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from jsonschema import validate
 from sqlalchemy.sql import func
 from flask_socketio import SocketIO
+from werkzeug.exceptions import NotFound
 
 from db_models import *
 from image_process import process_images_and_text
@@ -556,9 +557,22 @@ def send_css(filename):
     return send_from_directory(os.path.join(app.config['STATIC_FOLDER'], 'css'), path=filename)
 
 
-@app.route('/img/<path:filename>')
-def send_img(filename):
-    return send_from_directory(os.path.join(app.config['STATIC_FOLDER'], 'img'), path=filename)
+@app.route('/img/q/<path:filename>')
+def send_question_img(filename):
+    return send_from_directory(os.path.join(app.config['STATIC_FOLDER'], 'img/q'), path=filename)
+
+
+@app.route('/img/subject/<path:filename>')
+def send_subject_img(filename):
+    return send_from_directory(os.path.join(app.config['STATIC_FOLDER'], 'img/subject'), path=filename)
+
+
+@app.route('/img/user/<path:filename>')
+def send_user_avatar(filename):
+    try:
+        return send_from_directory(os.path.join(app.config['STATIC_FOLDER'], 'img/user'), path=filename)
+    except NotFound:
+        return send_from_directory(os.path.join(app.config['STATIC_FOLDER'], 'img/user'), path='default-avatar.png')
 
 
 @app.route('/admin-add.html')
@@ -596,6 +610,13 @@ def subject_exercise_page():
     return send_from_directory(app.config['STATIC_FOLDER'], 'subject-exercise.html')
 
 
+@app.route('/battle-select.html')
+@login_required
+@student_required
+def battle_select_page():
+    return send_from_directory(app.config['STATIC_FOLDER'], 'battle-select.html')
+
+
 @app.route('/search-wrong.html')
 @login_required
 @student_required
@@ -603,7 +624,6 @@ def search_wrong_page():
     return send_from_directory(app.config['STATIC_FOLDER'], 'search-wrong.html')
 
 
-# 不确定是否需要独立页面
 @app.route('/wrong-detail.html')
 @login_required
 @student_required

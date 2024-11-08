@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const username = document.getElementById('username');
     const uid = document.getElementById('uid');
+    const userAvatar = document.getElementById('user-avatar');
     const logoutLink = document.getElementById('logout-link');
     const userDropdownTrigger = document.getElementById('user-dropdown-trigger');
     const userDropdownMenu = document.getElementById('user-dropdown-menu');
@@ -119,6 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     username.innerText = getCookie('username');
     uid.innerText = getCookie('uid');
+    userAvatar.src = `img/user/${uid.innerText}.png`;
 
     // 读取从上个页面过来的数据，设置文档
     let questionStr = sessionStorage.getItem('Question')
