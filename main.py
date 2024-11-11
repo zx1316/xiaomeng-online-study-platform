@@ -546,6 +546,53 @@ def delete_wrong(json_data):
         return jsonify({"Msg": "Wrong answer not found"}), 400
 
 
+# ---  Battle Module  ---
+def get_rank_info_for_subject(subject, status_model, current_user_id):
+    subject_data = db.session.query(status_model).join(User).all()
+    subject_data = sorted(subject_data, key=lambda x: x.Elo, reverse=True)
+
+    self_rank = 0
+    ranks = []
+    for idx, status in enumerate(subject_data):
+        if status.Uid == current_user_id:
+            self_rank = idx + 1
+        ranks.append({
+            "username": status.user.Username,
+            "Total": status.Total,
+            "Right": status.Right,
+            "Elo": status.Elo
+        })
+
+    return {
+        "Subject": subject,
+        "Total": next((status.Total for status in subject_data if status.Uid == current_user_id), 0),
+        "Right": next((status.Right for status in subject_data if status.Uid == current_user_id), 0),
+        "SelfRank": self_rank,
+        "Elo": next((status.Elo for status in subject_data if status.Uid == current_user_id), 1000),  # 默认 Elo 为 1000
+        "Ranks": ranks
+    }
+
+
+@app.route('/rank_info', methods=['POST'])
+def rank_info():
+    current_user_id = current_user.Uid
+    subjects = ['数学Ⅰ', '数学Ⅱ', '政治', '计算机学科专业基础综合']
+    status_models = {
+        '数学Ⅰ': Math1LearningStatus,
+        '数学Ⅱ': Math2LearningStatus,
+        '政治': PolLearningStatus,
+        '计算机学科专业基础综合': CS408LearningStatus
+    }
+    response_data = []
+    for subject in subjects:
+        # 对每个科目获取段位信息
+        status_model = status_models[subject]
+        subject_data = get_rank_info_for_subject(subject, status_model, current_user_id)
+        response_data.append(subject_data)
+
+    return jsonify(response_data), 200
+
+
 # static res
 @app.route('/js/<path:filename>')
 def send_js(filename):
