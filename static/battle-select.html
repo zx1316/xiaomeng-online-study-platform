@@ -3,10 +3,15 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>练习科目选择 · 小萌在线学习平台</title>
+    <title>对战科目选择 · 小萌在线学习平台</title>
     <link href="https://cdn.staticfile.net/twitter-bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/my-topfix-navbar.css" rel="stylesheet">
     <link href="css/theme-switch.css" rel="stylesheet">
+    <style>
+        tr {
+            vertical-align: middle;
+        }
+    </style>
     <script src="js/color-modes.js"></script>
 </head>
 <body class="bg-body-tertiary">
@@ -93,127 +98,9 @@
 </nav>
 <div class="container bg-body py-3">
     <nav>
-        <div class="nav nav-tabs mb-3" id="nav-tab" role="tablist">
-            <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab" data-bs-target="#nav-home" type="button" role="tab" aria-controls="nav-home" aria-selected="true">数学Ⅰ</button>
-            <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="false" tabindex="-1">数学Ⅱ</button>
-            <button class="nav-link" id="nav-contact-tab" data-bs-toggle="tab" data-bs-target="#nav-contact" type="button" role="tab" aria-controls="nav-contact" aria-selected="false" tabindex="-1">政治</button>
-        </div>
+        <div class="nav nav-tabs mb-3" id="subject-nav-tab" role="tablist"></div>
     </nav>
-    <div class="tab-content" id="nav-tabContent">
-        <div class="tab-pane fade active show" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
-            <div class="row px-3 py-2">
-                <div class="col-md p-0 pe-md-2 d-flex flex-column">
-                    <span class="h3 text-center">TOP 10</span>
-                    <ul class="list-group">
-                        <li class="list-group-item">
-                            <div class="d-flex align-items-center gap-2">
-                                <img src="img/user/default-avatar.png" width="32" height="32" class="rounded-circle">
-                                <div class="flex-grow-1 d-flex justify-content-between align-items-center gap-2">
-                                    <span>测试用户1</span>
-                                    <span class="text-danger">11451</span>
-                                </div>
-                            </div>
-                        </li>
-                        <li class="list-group-item">
-                            <div class="d-flex align-items-center gap-2">
-                                <img src="img/user/default-avatar.png" width="32" height="32" class="rounded-circle">
-                                <div class="flex-grow-1 d-flex justify-content-between align-items-center gap-2">
-                                    <span>测试用户2</span>
-                                    <span class="text-secondary-emphasis">1145</span>
-                                </div>
-                            </div>
-                        </li>
-                        <li class="list-group-item">
-                            <div class="d-flex align-items-center gap-2">
-                                <img src="img/user/default-avatar.png" width="32" height="32" class="rounded-circle">
-                                <div class="flex-grow-1 d-flex justify-content-between align-items-center gap-2">
-                                    <span>测试用户3</span>
-                                    <span class="text-secondary-emphasis">1145</span>
-                                </div>
-                            </div>
-                        </li>
-                        <li class="list-group-item">
-                            <div class="d-flex align-items-center gap-2">
-                                <img src="img/user/default-avatar.png" width="32" height="32" class="rounded-circle">
-                                <div class="flex-grow-1 d-flex justify-content-between align-items-center gap-2">
-                                    <span>测试用户4</span>
-                                    <span class="text-secondary-emphasis">1145</span>
-                                </div>
-                            </div>
-                        </li>
-                        <li class="list-group-item">
-                            <div class="d-flex align-items-center gap-2">
-                                <img src="img/user/default-avatar.png" width="32" height="32" class="rounded-circle">
-                                <div class="flex-grow-1 d-flex justify-content-between align-items-center gap-2">
-                                    <span>测试用户5</span>
-                                    <span class="text-secondary-emphasis">1145</span>
-                                </div>
-                            </div>
-                        </li>
-                        <li class="list-group-item">
-                            <div class="d-flex align-items-center gap-2">
-                                <img src="img/user/default-avatar.png" width="32" height="32" class="rounded-circle">
-                                <div class="flex-grow-1 d-flex justify-content-between align-items-center gap-2">
-                                    <span>测试用户6</span>
-                                    <span class="text-secondary-emphasis">1145</span>
-                                </div>
-                            </div>
-                        </li>
-                        <li class="list-group-item">
-                            <div class="d-flex align-items-center gap-2">
-                                <img src="img/user/default-avatar.png" width="32" height="32" class="rounded-circle">
-                                <div class="flex-grow-1 d-flex justify-content-between align-items-center gap-2">
-                                    <span>测试用户7</span>
-                                    <span class="text-secondary-emphasis">1145</span>
-                                </div>
-                            </div>
-                        </li>
-                        <li class="list-group-item">
-                            <div class="d-flex align-items-center gap-2">
-                                <img src="img/user/default-avatar.png" width="32" height="32" class="rounded-circle">
-                                <div class="flex-grow-1 d-flex justify-content-between align-items-center gap-2">
-                                    <span>测试用户8</span>
-                                    <span class="text-secondary-emphasis">1145</span>
-                                </div>
-                            </div>
-                        </li>
-                        <li class="list-group-item">
-                            <div class="d-flex align-items-center gap-2">
-                                <img src="img/user/default-avatar.png" width="32" height="32" class="rounded-circle">
-                                <div class="flex-grow-1 d-flex justify-content-between align-items-center gap-2">
-                                    <span>测试用户9</span>
-                                    <span class="text-secondary-emphasis">1145</span>
-                                </div>
-                            </div>
-                        </li>
-                        <li class="list-group-item">
-                            <div class="d-flex align-items-center gap-2">
-                                <img src="img/user/default-avatar.png" width="32" height="32" class="rounded-circle">
-                                <div class="flex-grow-1 d-flex justify-content-between align-items-center gap-2">
-                                    <span>测试用户10</span>
-                                    <span class="text-secondary-emphasis">1145</span>
-                                </div>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-                <div class="col-md p-0 pt-3 pt-md-0 ps-md-2">
-                    <div class="h-100 p-3 d-flex flex-column justify-content-center align-items-center gap-2 border border-2 border-info-subtle" style="border-radius: 16px">
-                        <span class="display-2 text-info">9180</span>
-                        <span>做题数: 123456789</span>
-                        <span>正确率: 95.00%</span>
-                        <a class="btn btn-lg btn-primary mt-2 mt-md-3" style="min-width: 6.5em" href="#" target="_blank">开始匹配</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
-            <p>This is some placeholder content the <strong>Profile tab's</strong> associated content. Clicking another tab will toggle the visibility of this one for the next. The tab JavaScript swaps classes to control the content visibility and styling. You can use it with tabs, pills, and any other <code>.nav</code>-powered navigation.</p>
-        </div>
-        <div class="tab-pane fade" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab">
-            <p>This is some placeholder content the <strong>Contact tab's</strong> associated content. Clicking another tab will toggle the visibility of this one for the next. The tab JavaScript swaps classes to control the content visibility and styling. You can use it with tabs, pills, and any other <code>.nav</code>-powered navigation.</p>
-        </div>
-    </div>
+    <div class="tab-content" id="nav-tab-content"></div>
 </div>
 <script src="js/bootstrap.bundle.min.js"></script>
 <script src="js/battle-select.js"></script>

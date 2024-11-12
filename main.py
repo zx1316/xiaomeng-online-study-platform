@@ -573,7 +573,7 @@ def get_rank_info_for_subject(subject, status_model, current_user_id):
     }
 
 
-@app.route('/rank_info', methods=['POST'])
+@app.route('/rank_info')
 def rank_info():
     current_user_id = current_user.Uid
     subjects = ['数学Ⅰ', '数学Ⅱ', '政治', '计算机学科专业基础综合']
