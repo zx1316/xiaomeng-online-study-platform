@@ -564,7 +564,7 @@ def get_rank_info_for_subject(subject, status_model, current_user_id):
             self_elo = status.Elo
         ranks.append({
             "Uid": status.Uid,
-            "username": username,
+            "Username": username,
             "Total": status.Total,
             "Right": status.Right,
             "Elo": status.Elo

@@ -72,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     btn.setAttribute('aria-selected', 'false');
                     btn.tabIndex = -1;
                 }
+                btn.innerText = element.Subject;
                 subjectNavTab.appendChild(btn);
 
                 // 插入每一个科目的详情
