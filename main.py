@@ -1,3 +1,6 @@
+import functools
+import threading
+import uuid
 from datetime import datetime
 import json
 import os
@@ -7,11 +10,13 @@ from flask import Flask, redirect, request, url_for, jsonify, send_from_director
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from jsonschema import validate
 from sqlalchemy.sql import func
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, emit, join_room, leave_room, disconnect, rooms
 from werkzeug.exceptions import NotFound
 
+import Elo_match
 from db_models import *
 from image_process import process_images_and_text
+from Elo_match import Player, Game, Game_dict, search_player
 
 IMAGE_SAVE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/img/q')
 os.makedirs(IMAGE_SAVE_PATH, exist_ok=True)
@@ -24,6 +29,8 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 socketio = SocketIO(app)
+
+question_nums = 10
 
 
 # we use this because before_first_request is deprecated
@@ -53,7 +60,9 @@ def validate_json(schema):
                 return f(*args, **kwargs, json_data=json_data)
             except Exception as e:
                 return jsonify(Msg=str(e)), 400
+
         return wrapper
+
     return decorator
 
 
@@ -148,6 +157,7 @@ def admin_required(f):
         if not current_user.IsAdmin:
             abort(403)
         return f(*args, **kwargs)
+
     return decorated_function
 
 
@@ -158,6 +168,7 @@ def student_required(f):
         if current_user.IsAdmin:
             abort(403)
         return f(*args, **kwargs)
+
     return decorated_function
 
 
@@ -401,7 +412,7 @@ def get_exercise_questions(json_data):
 def submit_exercise_results(json_data):
     uid = current_user.Uid
     subject = json_data.get('Subject')
-    total = 10      # 定死这个练习数量
+    total = 10  # 定死这个练习数量
     wrong_questions = json_data.get('WrongQuestion')
 
     right_cnt = total - len(wrong_questions)
@@ -591,6 +602,251 @@ def rank_info():
         response_data.append(subject_data)
 
     return jsonify(response_data), 200
+
+
+def authenticated_only(f):
+    # 长连接鉴权
+    @functools.wraps(f)
+    def wrapped(*args, **kwargs):
+        if not current_user.is_authenticated:
+            disconnect()
+        else:
+            return f(*args, **kwargs)
+
+    return wrapped
+
+
+# 当匹配成功时通知服务器发送报文
+class Matcher:
+    def __init__(self):
+        self._observers = []
+
+    def add_observer(self, observer):
+        if observer not in self._observers:
+            self._observers.append(observer)
+
+    def remove_observer(self, observer):
+        self._observers.remove(observer)
+
+    def notify_observers(self, *args, **kwargs):
+        for observer in self._observers:
+            observer.update(*args, **kwargs)
+
+
+class Observer:
+    def update(self, *args, **kwargs):
+        # 待写
+        player1 = args[0]
+        player2 = args[1]
+        new_game = Game(player1, player2)
+        new_room_id = f'{player1.sid}_{player2.sid}_{uuid.uuid4()}'
+        join_room(new_room_id, player1.sid)
+        join_room(new_room_id, player2.sid)
+        Game_dict[new_room_id] = new_game
+        send_match_ok(new_room_id)
+
+
+matcher = Matcher()
+observer = Observer()
+matcher.add_observer(observer)
+
+
+@socketio.on('connect')
+def handle_connect():
+    print('Fuck you')
+
+
+@socketio.on('start')
+@authenticated_only
+def handle_match_request(data):
+    player = Player(uid=current_user.Uid, subject=data['Subject'], sid=request.sid)
+    # 匹配相关
+    match_result, player1, player2 = Elo_match.search_player(player)
+    if match_result:
+        matcher.notify_observers(player1, player2)
+        # 即时匹配成功
+        new_game = Game(player1, player2)
+        new_room_id = f'{player1.sid}_{player2.sid}_{uuid.uuid4()}'
+        join_room(new_room_id, player1.sid)
+        join_room(new_room_id, player2.sid)
+        Game_dict[new_room_id] = new_game
+
+    else:
+        Elo_match.join_new_player(player)
+        timeout = 60
+        Elo_match.start_timer(timeout)
+
+
+@socketio.on('end')
+@authenticated_only
+def handle_end_request(data):
+    pass
+
+
+@socketio.on('friendStart')
+@authenticated_only
+def handle_friend_start_request(data):
+    pass
+
+
+@socketio.on('friendEnd')
+@authenticated_only
+def handle_friend_end_request(data):
+    pass
+
+
+@socketio.on('submit_answer')
+@authenticated_only
+def handle_submit_answer(data):
+    answer = data['Answer']
+    sid = request.sid
+    room_id = rooms(sid=sid)[0]
+    game = Game_dict[room_id]
+    right = False
+    if sid == game.player1.sid:
+        player = game.player1
+        opponent = game.player2
+    else:
+        player = game.player2
+        opponent = game.player1
+
+    if answer in game.questions[player.total].Answer:
+        player.right += 1
+        player.total += 1
+        right = True
+    else:
+        game.player1.total += 1
+
+    emit('judge_result', {
+        "Correct": right,
+        "Question": game.questions[player.total].Question,
+        "SelectionA": game.questions[player.total].SelectionA,
+        "SelectionB": game.questions[player.total].SelectionB,
+        "SelectionC": game.questions[player.total].SelectionC,
+        "SelectionD": game.questions[player.total].SelectionD
+    }, to=player.sid)
+    emit('opponent', {
+        "Correct": right
+    }, to=opponent.sid)
+    first = None
+    if game.player1.total == question_nums and first is None:
+        first = game.player1.sid
+    if game.player2.total == question_nums and first is None:
+        first = game.player2.sid
+    if game.player1.total == question_nums and game.player2.total == question_nums:
+        # 正常结束
+        # 更新数据库
+        player1_status = game.player1.get_subject_model.query.filter_by(Uid=game.player1.uid).first()
+        player2_status = game.player2.get_subject_model.query.filter_by(Uid=game.player2.uid).first()
+        player1_status.total += game.player1.total
+        player1_status.right += game.player1.right
+        player2_status.total += game.player2.total
+        player2_status.right += game.player2.right
+        # 判断胜负
+        if game.player1.right > game.player2.right:
+            winner = 0
+        elif game.player2.right > game.player1.right:
+            winner = 1
+        else:
+            if first == game.player1.sid:
+                winner = 0
+            else:
+                winner = 1
+        elo_delta_a, elo_delta_b = Elo_match.elo_calculater(game.player1.elo, game.player2.elo, winner)
+        player1_status.elo = game.player1.elo + elo_delta_a
+        player2_status.elo = game.player2.elo + elo_delta_b
+        db.session.commit()
+        # 发送结果
+        emit('match_result', {
+            "self": elo_delta_a,
+            "opponent": elo_delta_b
+        }, to=game.player1.sid)
+        emit('match_result', {
+            "self": elo_delta_b,
+            "opponent": elo_delta_a
+        }, to=game.player2.sid)
+        disconnect(game.player1.sid)
+        disconnect(game.player2.sid)
+        # 事后清理
+        Game_dict.pop(room_id)
+
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    sid = request.sid
+    room_id = rooms(sid=sid)
+    if room_id is None:
+        # 还未分配房间号 匹配中断开了
+        Elo_match.remove_player_by_sid(sid=sid)
+    else:
+        room_id = room_id[0]
+    # 得区分事件
+
+    # 处理浏览器主动断开连接
+
+    game = Game_dict[room_id]
+    if Game_dict[room_id].player1.sid == sid:
+        player = Game_dict[room_id].player1
+        opponent = Game_dict[room_id].player2
+    else:
+        player = Game_dict[room_id].player2
+        opponent = Game_dict[room_id].player1
+
+    if player.total < question_nums:
+        # 直接判负
+        player1_status = game.player1.get_subject_model.query.filter_by(Uid=game.player1.uid).first()
+        player2_status = game.player2.get_subject_model.query.filter_by(Uid=game.player2.uid).first()
+        player1_status.total += game.player1.total
+        player1_status.right += game.player1.right
+        player2_status.total += game.player2.total
+        player2_status.right += game.player2.right
+        if player.sid == game.player1.sid:
+            winner = 1
+        else:
+            winner = 0
+        elo_delta_a, elo_delta_b = Elo_match.elo_calculater(game.player1.elo, game.player2.elo, winner)
+        player1_status.elo = game.player1.elo + elo_delta_a
+        player2_status.elo = game.player2.elo + elo_delta_b
+        db.session.commit()
+        # 发送结果
+        emit('match', {
+            "Type": "match_result",
+            "self": elo_delta_a,
+            "opponent": elo_delta_b
+        }, to=game.player1.sid)
+        emit('match', {
+            "Type": "match_result",
+            "self": elo_delta_b,
+            "opponent": elo_delta_a
+        }, to=game.player2.sid)
+        disconnect(game.player1.sid)
+        disconnect(game.player2.sid)
+        # 事后清理
+        Game_dict.pop(room_id)
+
+
+def send_match_ok(room_id):
+    game = Game_dict[room_id]
+    emit('match', {
+        "Type": "match_success",
+        "Username": game.player2.username,
+        "Uid": game.player2.uid,
+        "Question": game.questions[game.player1.total].Question,
+        "SelectionA": game.questions[game.player1.total].SelectionA,
+        "SelectionB": game.questions[game.player1.total].SelectionB,
+        "SelectionC": game.questions[game.player1.total].SelectionC,
+        "SelectionD": game.questions[game.player1.total].SelectionD
+    }, to=game.player1.sid)
+    emit('match', {
+        "Type": "match_success",
+        "Username": game.player1.username,
+        "Uid": game.player1.uid,
+        "Question": game.questions[game.player2.total].Question,
+        "SelectionA": game.questions[game.player2.total].SelectionA,
+        "SelectionB": game.questions[game.player2.total].SelectionB,
+        "SelectionC": game.questions[game.player2.total].SelectionC,
+        "SelectionD": game.questions[game.player2.total].SelectionD
+    }, to=game.player2.sid)
 
 
 # static res
