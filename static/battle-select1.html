@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="zh" data-bs-theme="auto">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>对战科目选择 · 小萌在线学习平台</title>
+    <link href="https://cdn.staticfile.net/twitter-bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/my-topfix-navbar.css" rel="stylesheet">
+    <link href="css/theme-switch.css" rel="stylesheet">
+    <style>
+        tr {
+            vertical-align: middle;
+        }
+    </style>
+    <script src="js/color-modes.js"></script>
+</head>
+<body class="bg-body-tertiary">
+<!--切换主题的按钮-->
+<svg xmlns="http://www.w3.org/2000/svg" class="d-none">
+    <symbol id="check2" viewBox="0 0 16 16">
+        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"></path>
+    </symbol>
+    <symbol id="circle-half" viewBox="0 0 16 16">
+        <path d="M8 15A7 7 0 1 0 8 1v14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"></path>
+    </symbol>
+    <symbol id="moon-stars-fill" viewBox="0 0 16 16">
+        <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"></path>
+        <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"></path>
+    </symbol>
+    <symbol id="sun-fill" viewBox="0 0 16 16">
+        <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"></path>
+    </symbol>
+</svg>
+<div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 bd-mode-toggle">
+    <button class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center" id="bd-theme" type="button" aria-expanded="false" data-bs-toggle="dropdown" aria-label="Toggle theme (auto)">
+        <svg class="bi my-1 theme-icon-active" width="1em" height="1em"><use href="#circle-half"></use></svg>
+        <span class="visually-hidden" id="bd-theme-text">Toggle theme</span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="bd-theme-text">
+        <li>
+            <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light" aria-pressed="false">
+                <svg class="bi me-2 opacity-50" width="1em" height="1em"><use href="#sun-fill"></use></svg>
+                Light
+                <svg class="bi ms-auto d-none" width="1em" height="1em"><use href="#check2"></use></svg>
+            </button>
+        </li>
+        <li>
+            <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark" aria-pressed="false">
+                <svg class="bi me-2 opacity-50" width="1em" height="1em"><use href="#moon-stars-fill"></use></svg>
+                Dark
+                <svg class="bi ms-auto d-none" width="1em" height="1em"><use href="#check2"></use></svg>
+            </button>
+        </li>
+        <li>
+            <button type="button" class="dropdown-item d-flex align-items-center active" data-bs-theme-value="auto" aria-pressed="true">
+                <svg class="bi me-2 opacity-50" width="1em" height="1em"><use href="#circle-half"></use></svg>
+                Auto
+                <svg class="bi ms-auto d-none" width="1em" height="1em"><use href="#check2"></use></svg>
+            </button>
+        </li>
+    </ul>
+</div>
+<!--导航栏-->
+<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="#">小萌在线学习平台</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="select-subject.html">练习</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="#">对战</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="search-wrong.html">错题本</a>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center">
+                <div class="dropdown">
+                    <a href="#" class="d-block link-body-emphasis text-decoration-none dropdown-toggle" id="user-dropdown-trigger" data-bs-toggle="dropdown" aria-expanded="false">
+                        <img src="" width="32" height="32" class="rounded-circle" id="user-avatar">
+                    </a>
+                    <ul class="dropdown-menu text-small" id="user-dropdown-menu">
+                        <li><h6 class="dropdown-header" id="username"></h6></li>
+                        <li><h6 class="dropdown-header">UID：<span id="uid"></span></h6></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" id="user-center-link" href="#">个人中心</a></li>
+                        <li><a class="dropdown-item" id="logout-link" href="#">登出</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+<div class="container bg-body py-3">
+    <nav>
+        <div class="nav nav-tabs mb-3" id="subject-nav-tab" role="tablist">
+            <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab" data-bs-target="#nav-home" type="button" role="tab" aria-controls="nav-home" aria-selected="true">数学Ⅰ</button>
+            <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="false" tabindex="-1">数学Ⅱ</button>
+            <button class="nav-link" id="nav-contact-tab" data-bs-toggle="tab" data-bs-target="#nav-contact" type="button" role="tab" aria-controls="nav-contact" aria-selected="false" tabindex="-1">政治</button>
+        </div>
+    </nav>
+    <div class="tab-content" id="nav-tab-content">
+        <div class="tab-pane fade active show" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
+            <div class="row px-3 py-2">
+                <div class="col-md p-0 pe-md-2">
+                    <table class="table m-0">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-center">#</th>
+                                <th scope="col">用户名</th>
+                                <th scope="col" class="text-end">ELO</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th scope="row" class="text-danger text-center">1</th>
+                                <td class="w-100">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="img/user/default-avatar.png" width="32" height="32" class="rounded-circle">
+                                        <span>测试用户1</span>
+                                    </div>
+                                </td>
+                                <td class="text-end text-danger">23333</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-center">2</th>
+                                <td class="w-100">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="img/user/default-avatar.png" width="32" height="32" class="rounded-circle">
+                                        <span>测试用户2</span>
+                                    </div>
+                                </td>
+                                <td class="text-end">2333</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-center">3</th>
+                                <td class="w-100">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="img/user/default-avatar.png" width="32" height="32" class="rounded-circle">
+                                        <span>测试用户3</span>
+                                    </div>
+                                </td>
+                                <td class="text-end">2333</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-center">4</th>
+                                <td class="w-100">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="img/user/default-avatar.png" width="32" height="32" class="rounded-circle">
+                                        <span>测试用户4</span>
+                                    </div>
+                                </td>
+                                <td class="text-end">2333</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-center">5</th>
+                                <td class="w-100">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="img/user/default-avatar.png" width="32" height="32" class="rounded-circle">
+                                        <span>测试用户5</span>
+                                    </div>
+                                </td>
+                                <td class="text-end">2333</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-center">6</th>
+                                <td class="w-100">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="img/user/default-avatar.png" width="32" height="32" class="rounded-circle">
+                                        <span>测试用户6</span>
+                                    </div>
+                                </td>
+                                <td class="text-end">2333</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-center">7</th>
+                                <td class="w-100">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="img/user/default-avatar.png" width="32" height="32" class="rounded-circle">
+                                        <span>测试用户7</span>
+                                    </div>
+                                </td>
+                                <td class="text-end">2333</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-center">8</th>
+                                <td class="w-100">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="img/user/default-avatar.png" width="32" height="32" class="rounded-circle">
+                                        <span>测试用户8</span>
+                                    </div>
+                                </td>
+                                <td class="text-end">2333</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-center">9</th>
+                                <td class="w-100">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="img/user/default-avatar.png" width="32" height="32" class="rounded-circle">
+                                        <span>测试用户9</span>
+                                    </div>
+                                </td>
+                                <td class="text-end">2333</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-center">10</th>
+                                <td class="w-100">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="img/user/default-avatar.png" width="32" height="32" class="rounded-circle">
+                                        <span>测试用户10</span>
+                                    </div>
+                                </td>
+                                <td class="text-end">2333</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <th scope="row" class="text-center">9999+</th>
+                                <td class="w-100">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="img/user/default-avatar.png" width="32" height="32" class="rounded-circle">
+                                        <span>测试用户你</span>
+                                    </div>
+                                </td>
+                                <td class="text-end">233</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md p-0 pt-3 pt-md-0 ps-md-2">
+                    <div class="h-100 p-3 d-flex flex-column justify-content-center align-items-center gap-2 border border-2 border-info-subtle" style="border-radius: 16px">
+                        <span class="display-2 text-info">233</span>
+                        <span>做题数: 123456789</span>
+                        <span>正确率: 95.00%</span>
+                        <a class="btn btn-lg btn-primary mt-2 mt-md-3" style="min-width: 6.5em" href="#" target="_blank">开始匹配</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
+            <p>This is some placeholder content the <strong>Profile tab's</strong> associated content. Clicking another tab will toggle the visibility of this one for the next. The tab JavaScript swaps classes to control the content visibility and styling. You can use it with tabs, pills, and any other <code>.nav</code>-powered navigation.</p>
+        </div>
+        <div class="tab-pane fade" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab">
+            <p>This is some placeholder content the <strong>Contact tab's</strong> associated content. Clicking another tab will toggle the visibility of this one for the next. The tab JavaScript swaps classes to control the content visibility and styling. You can use it with tabs, pills, and any other <code>.nav</code>-powered navigation.</p>
+        </div>
+    </div>
+</div>
+<script src="js/bootstrap.bundle.min.js"></script>
+<script src="js/battle-select.js"></script>
+</body>
+</html>

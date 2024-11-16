@@ -559,16 +559,23 @@ def delete_wrong(json_data):
 
 # ---  Battle Module  ---
 def get_rank_info_for_subject(subject, status_model, current_user_id):
-    subject_data = db.session.query(status_model).join(User).all()
-    subject_data = sorted(subject_data, key=lambda x: x.Elo, reverse=True)
+    subject_data = db.session.query(status_model, User.Username).join(User, status_model.Uid == User.Uid).all()
+    subject_data = sorted(subject_data, key=lambda x: x[0].Elo, reverse=True)
 
     self_rank = 0
+    self_total = 0
+    self_right = 0
+    self_elo = 0
     ranks = []
-    for idx, status in enumerate(subject_data):
+    for idx, (status, username) in enumerate(subject_data):
         if status.Uid == current_user_id:
             self_rank = idx + 1
+            self_total = status.Total
+            self_right = status.Right
+            self_elo = status.Elo
         ranks.append({
-            "username": status.user.Username,
+            "Uid": status.Uid,
+            "Username": username,
             "Total": status.Total,
             "Right": status.Right,
             "Elo": status.Elo
@@ -576,15 +583,15 @@ def get_rank_info_for_subject(subject, status_model, current_user_id):
 
     return {
         "Subject": subject,
-        "Total": next((status.Total for status in subject_data if status.Uid == current_user_id), 0),
-        "Right": next((status.Right for status in subject_data if status.Uid == current_user_id), 0),
+        "Total": self_total,
+        "Right": self_right,
         "SelfRank": self_rank,
-        "Elo": next((status.Elo for status in subject_data if status.Uid == current_user_id), 1000),  # 默认 Elo 为 1000
+        "Elo": self_elo,
         "Ranks": ranks
     }
 
 
-@app.route('/rank_info', methods=['POST'])
+@app.route('/rank_info', methods=['GET'])
 def rank_info():
     current_user_id = current_user.Uid
     subjects = ['数学Ⅰ', '数学Ⅱ', '政治', '计算机学科专业基础综合']
