@@ -1,20 +1,19 @@
 <!doctype html>
-<html lang="zh" data-bs-theme="auto">
+<html lang="zh" class="h-100">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>对战科目选择 · 小萌在线学习平台</title>
-    <link href="https://cdn.staticfile.net/twitter-bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/my-topfix-navbar.css" rel="stylesheet">
+    <title>对战 · 小萌在线学习平台</title>
+    <link rel="stylesheet" href="https://cdn.staticfile.net/twitter-bootstrap/5.3.2/css/bootstrap.min.css">
     <link href="css/theme-switch.css" rel="stylesheet">
     <style>
-        tr {
-            vertical-align: middle;
+        .question-img {
+            max-width: 100%;
         }
     </style>
     <script src="js/color-modes.js"></script>
 </head>
-<body class="bg-body-tertiary">
+<body class="d-flex align-items-center h-100 py-4">
 <!--切换主题的按钮-->
 <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
     <symbol id="check2" viewBox="0 0 16 16">
@@ -60,49 +59,32 @@
         </li>
     </ul>
 </div>
-<!--导航栏-->
-<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-    <div class="container">
-        <a class="navbar-brand" href="#">小萌在线学习平台</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarCollapse">
-            <ul class="navbar-nav me-auto mb-2 mb-md-0">
-                <li class="nav-item">
-                    <a class="nav-link" href="exercise-select.html">练习</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link active" href="#">对战</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="search-wrong.html">错题本</a>
-                </li>
-            </ul>
-            <div class="d-flex align-items-center">
-                <div class="dropdown">
-                    <a href="#" class="d-block link-body-emphasis text-decoration-none dropdown-toggle" id="user-dropdown-trigger" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img src="" width="32" height="32" class="rounded-circle" id="user-avatar">
-                    </a>
-                    <ul class="dropdown-menu text-small" id="user-dropdown-menu">
-                        <li><h6 class="dropdown-header" id="username"></h6></li>
-                        <li><h6 class="dropdown-header">UID：<span id="uid"></span></h6></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" id="user-center-link" href="#">个人中心</a></li>
-                        <li><a class="dropdown-item" id="logout-link" href="#">登出</a></li>
-                    </ul>
-                </div>
+
+<div id="main-display" class="w-100 m-auto d-flex flex-column align-items-center" style="max-width: 460px">
+    <img src="img/matching.gif" alt="matching" width="192">
+    <h2 id="waiting-text" class="pt-3">正在匹配旗鼓相当的对手.</h2>
+    <span>若想终止匹配，请关闭标签页</span>
+</div>
+
+<div class="modal fade" id="warning-modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">警告</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <span>若选择直接回顾，您将无法得知本场对战的胜负情况，分数将在对手作答完毕后更新。</span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">&ensp;再等等&ensp;</button>
+                <button type="button" class="btn btn-primary" id="continue-review-btn" data-bs-dismiss="modal">直接回顾</button>
             </div>
         </div>
     </div>
-</nav>
-<div class="container bg-body py-3">
-    <nav>
-        <div class="nav nav-tabs mb-3" id="subject-nav-tab" role="tablist"></div>
-    </nav>
-    <div class="tab-content" id="nav-tab-content"></div>
 </div>
+<script src="https://cdn.staticfile.net/socket.io/4.7.4/socket.io.min.js"></script>
 <script src="js/bootstrap.bundle.min.js"></script>
-<script src="js/battle-select.js"></script>
+<script src="js/battle.js"></script>
 </body>
 </html>

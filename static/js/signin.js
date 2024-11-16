@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // 添加一个永久用户名cookie
                     document.cookie = `username=${usernameInput.value}; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/`;
                     document.cookie = `uid=${result.Uid}; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/`;
-                    window.location.href = '/select-subject.html';  // todo: 临时导航到科目选择，待定
+                    window.location.href = '/exercise-select.html';  // todo: 临时导航到科目选择，待定
                 } else if (result.Msg === 'admin_ok') {
                     document.cookie = `username=${usernameInput.value}; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/`;
                     document.cookie = `uid=${result.Uid}; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/`;

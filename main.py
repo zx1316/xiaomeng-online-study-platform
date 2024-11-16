@@ -867,22 +867,17 @@ def send_css(filename):
     return send_from_directory(os.path.join(app.config['STATIC_FOLDER'], 'css'), path=filename)
 
 
-@app.route('/img/q/<path:filename>')
-def send_question_img(filename):
-    return send_from_directory(os.path.join(app.config['STATIC_FOLDER'], 'img/q'), path=filename)
-
-
-@app.route('/img/subject/<path:filename>')
-def send_subject_img(filename):
-    return send_from_directory(os.path.join(app.config['STATIC_FOLDER'], 'img/subject'), path=filename)
-
-
 @app.route('/img/user/<path:filename>')
 def send_user_avatar(filename):
     try:
         return send_from_directory(os.path.join(app.config['STATIC_FOLDER'], 'img/user'), path=filename)
     except NotFound:
         return send_from_directory(os.path.join(app.config['STATIC_FOLDER'], 'img/user'), path='default-avatar.png')
+
+
+@app.route('/img/<path:filename>')
+def send_img(filename):
+    return send_from_directory(os.path.join(app.config['STATIC_FOLDER'], 'img'), path=filename)
 
 
 @app.route('/admin-add.html')
@@ -906,18 +901,18 @@ def admin_preview_page():
     return send_from_directory(app.config['STATIC_FOLDER'], 'admin-preview.html')
 
 
-@app.route('/select-subject.html')
+@app.route('/exercise-select.html')
 @login_required
 @student_required
-def select_subject_page():
-    return send_from_directory(app.config['STATIC_FOLDER'], 'select-subject.html')
+def exercise_select_page():
+    return send_from_directory(app.config['STATIC_FOLDER'], 'exercise-select.html')
 
 
-@app.route('/subject-exercise.html')
+@app.route('/exercise.html')
 @login_required
 @student_required
-def subject_exercise_page():
-    return send_from_directory(app.config['STATIC_FOLDER'], 'subject-exercise.html')
+def exercise_page():
+    return send_from_directory(app.config['STATIC_FOLDER'], 'exercise.html')
 
 
 @app.route('/battle-select.html')
@@ -925,6 +920,13 @@ def subject_exercise_page():
 @student_required
 def battle_select_page():
     return send_from_directory(app.config['STATIC_FOLDER'], 'battle-select.html')
+
+
+@app.route('/battle.html')
+@login_required
+@student_required
+def battle_page():
+    return send_from_directory(app.config['STATIC_FOLDER'], 'battle.html')
 
 
 @app.route('/search-wrong.html')
@@ -946,7 +948,7 @@ def login_page():
     if current_user.is_authenticated:
         if current_user.IsAdmin:
             return redirect(url_for('admin_search_page'))
-        return redirect(url_for('select_subject_page'))
+        return redirect(url_for('exercise_select_page'))
     return send_from_directory(app.config['STATIC_FOLDER'], 'signin.html')
 
 
@@ -962,4 +964,4 @@ def index():
 
 if __name__ == '__main__':
     initialize_database()
-    socketio.run(app, host='127.0.0.1', debug=True)
+    socketio.run(app, host='0.0.0.0', debug=True)

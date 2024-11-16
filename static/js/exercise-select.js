@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
         subjects.forEach(function(item) {
             // 创建a标签
             const a = document.createElement('a');
-            a.href = `/subject-exercise.html?querysubject=${item.Subject}`;
+            a.href = `/exercise.html?subject=${item.Subject}`;
             a.className = "list-group-item list-group-item-action d-flex gap-3 py-3";
             a.target = "_blank";
             a.setAttribute("aria-current", "true");

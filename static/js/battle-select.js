@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="display-2 text-info">${element.Elo}</span>
                                 <span>做题数: ${element.Total}</span>
                                 <span>正确率: ${element.Total === 0 ? '无' : (element.Right / element.Total * 100).toFixed(2) + '%'}</span>
-                                <a class="btn btn-lg btn-primary mt-2 mt-md-3" style="min-width: 6.5em" href="subject-battle.html?subject=${element.Subject}" target="_blank">开始匹配</a>
+                                <a class="btn btn-lg btn-primary mt-2 mt-md-3" style="min-width: 6.5em" href="battle.html?subject=${element.Subject}" target="_blank">开始匹配</a>
                             </div>
                         </div>
                     </div>

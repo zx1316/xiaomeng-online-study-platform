@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
-    const subject = new URLSearchParams(window.location.search).get('querysubject');
+    const subject = new URLSearchParams(window.location.search).get('subject');
     feedbackObj.Subject = subject;
     feedbackObj.WrongQuestion = [];
     fetch('exercise', {
