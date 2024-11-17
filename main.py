@@ -645,6 +645,7 @@ class Observer:
         # 待写
         player1 = args[0]
         player2 = args[1]
+        print(player1.username + ' and ' + player2.username + 'are ready to start a battle.')
         new_game = Game(player1, player2)
         new_room_id = f'{player1.sid}_{player2.sid}_{uuid.uuid4()}'
         join_room(new_room_id, player1.sid)
@@ -667,6 +668,7 @@ def handle_connect():
 @authenticated_only
 def handle_match_request(data):
     player = Player(uid=current_user.Uid, subject=data['Subject'], sid=request.sid)
+    print(player.username + ' want ' + player.subject + 'whose sid is ' +player.sid)
     # 匹配相关
     match_result, player1, player2 = Elo_match.search_player(player)
     if match_result:
@@ -780,6 +782,7 @@ def handle_submit_answer(data):
 
 @socketio.on('disconnect')
 def handle_disconnect():
+    print(request.sid + "is disconnected")
     sid = request.sid
     room_id = rooms(sid=sid)
     if room_id is None:
@@ -833,6 +836,7 @@ def handle_disconnect():
 
 
 def send_match_ok(room_id):
+    print('send match ok to ' + room_id)
     game = Game_dict[room_id]
     emit('match', {
         "Type": "match_success",
@@ -844,6 +848,7 @@ def send_match_ok(room_id):
         "SelectionC": game.questions[game.player1.total].SelectionC,
         "SelectionD": game.questions[game.player1.total].SelectionD
     }, to=game.player1.sid)
+    print(game.player1.sid)
     emit('match', {
         "Type": "match_success",
         "Username": game.player1.username,
@@ -854,7 +859,7 @@ def send_match_ok(room_id):
         "SelectionC": game.questions[game.player2.total].SelectionC,
         "SelectionD": game.questions[game.player2.total].SelectionD
     }, to=game.player2.sid)
-
+    print(game.player2.sid)
 
 # static res
 @app.route('/js/<path:filename>')

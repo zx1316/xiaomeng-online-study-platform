@@ -41,10 +41,9 @@ class Player:
         self.get_username()
 
     def get_username(self):
-        self.username = User.query.get(Uid=self.uid).username
+        self.username = User.query.filter_by(Uid=self.uid).first().Username
 
     def get_elo(self):
-        print('hello world')
         if self.subject == 'Math1':
             self.elo = Math1LearningStatus.query.get(Uid=self.uid).elo
         elif self.subject == 'Math2':
@@ -65,21 +64,17 @@ class Game:
     def __init__(self, player1, player2):
         self.player1 = player1
         self.player2 = player2
-        self.questions = []
+        self.questions = None
         self.get_questions()
 
     def get_questions(self):
         player_subject = subject_to_queue.get(self.player1.subject)
         num_questions = 10
         try:
-            if player_subject == 'CS408':
-                self.questions = CS408LearningStatus.query.order_by(func.random()).limit(10).all()
-            elif player_subject == 'Math1':
-                self.questions = Math1LearningStatus.query.order_by(func.random()).limit(10).all()
-            elif player_subject == 'Math2':
-                self.questions = Math2LearningStatus.query.order_by(func.random()).limit(10).all()
-            elif player_subject == 'Politic':
-                self.questions = PolLearningStatus.query.order_by(func.random()).limit(10).all()
+            if player_subject is not None:
+                print(self.player1.subject)
+                self.questions = (Question.query.filter(Question.Subject == self.player1.subject).
+                                  limit(num_questions).all())
             else:
                 print(f"Warning: Unknown subject '{self.player1.subject}'")
                 self.questions = []  # 或者你可以设置为默认问题集
@@ -91,7 +86,7 @@ class Game:
 def search_player(player):
     queue_name = subject_to_queue.get(player.subject)
     if len(player_list[queue_name]) < 1:
-        return False
+        return False, None, None
     for exist in player_list[queue_name]:
         # 搜索现有的等待用户中是否有满足匹配要求的
         if abs(player.elo - exist.elo) < first_step:
@@ -100,7 +95,7 @@ def search_player(player):
             return True, player, exist
         else:
             join_new_player(player)
-            return False
+            return False, None, None
 
 
 def elo_calculater(elo_a, elo_b, winner, k=32):
