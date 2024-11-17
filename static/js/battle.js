@@ -250,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 500);
 
-    const socket = io('/match');
+    const socket = io('/');
 
     socket.on('connect', () => {
         socket.emit('start', {Subject: new URLSearchParams(window.location.search).get('subject')});

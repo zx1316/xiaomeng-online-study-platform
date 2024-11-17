@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 outerDiv.innerHTML = `
                     <div class="row px-3 py-2">
                         <div class="col-md p-0 pe-md-2">
-                            <table class="table m-0">
+                            <table class="table table-hover m-0">
                                 <thead>
                                     <tr>
                                         <th scope="col" class="text-center">#</th>
