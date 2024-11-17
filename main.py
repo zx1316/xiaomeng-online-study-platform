@@ -675,8 +675,6 @@ class Observer:
         print(player1.username + ' and ' + player2.username + ' are ready to start a battle.')
         new_game = Game(player1, player2)
         new_room_id = f'{player1.sid}_{player2.sid}_{uuid.uuid4()}'
-        join_room(room=new_room_id, sid=player1.sid)
-        join_room(room=new_room_id, sid=player2.sid)
         my_room.join_players(player1.sid, player2.sid, new_room_id)
         Game_dict[new_room_id] = new_game
         send_match_ok(new_room_id)
@@ -700,17 +698,8 @@ def handle_match_request(data):
     # 匹配相关
     match_result, player1, player2 = Elo_match.search_player(player)
     if match_result:
-        matcher.notify_observers(player1, player2)
         # 即时匹配成功
-        new_game = Game(player1, player2)
-        new_room_id = f'{player1.sid}_{player2.sid}_{uuid.uuid4()}'
-        join_room(room=new_room_id, sid=player1.sid)
-        join_room(room=new_room_id, sid=player2.sid)
-        my_room.join_players(player1.sid, player2.sid, new_room_id)
-        print(new_room_id)
-        print(my_room.get_room(player1.sid))
-        Game_dict[new_room_id] = new_game
-
+        matcher.notify_observers(player1, player2)
     else:
         Elo_match.join_new_player(player)
         timeout = 60
@@ -760,7 +749,7 @@ def handle_submit_answer(data):
     else:
         player = game.player2
         opponent = game.player1
-
+    print(player.username, player.total)
     if answer in game.questions[player.total].Answer:
         player.right += 1
         right = True
@@ -778,7 +767,15 @@ def handle_submit_answer(data):
         emit('opponent', {
             "Correct": right
         }, to=opponent.sid)
-
+    else:
+        emit('judge_result', {
+            "Correct": right,
+            "Question": None,
+            "SelectionA": None,
+            "SelectionB": None,
+            "SelectionC": None,
+            "SelectionD": None
+        })
     first = None
     if game.player1.total == question_nums and first is None:
         first = game.player1.sid
@@ -810,18 +807,19 @@ def handle_submit_answer(data):
         db.session.commit()
         # 发送结果
         emit('match_result', {
-            "self": elo_delta_a,
-            "opponent": elo_delta_b
+            "Self": elo_delta_a,
+            "Opponent": elo_delta_b
         }, to=game.player1.sid)
         emit('match_result', {
-            "self": elo_delta_b,
-            "opponent": elo_delta_a
+            "Self": elo_delta_b,
+            "Opponent": elo_delta_a
         }, to=game.player2.sid)
         disconnect(game.player1.sid)
         disconnect(game.player2.sid)
         # 事后清理
-        Game_dict.pop(room_id)
-        my_room.remove_players(game.player1.sid, game.player2.sid)
+        if Game_dict.get(room_id):
+            my_room.remove_players(game.player1.sid, game.player2.sid)
+            Game_dict.pop(room_id)
 
 
 @socketio.on('disconnect')

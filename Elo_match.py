@@ -25,7 +25,7 @@ subject_to_model = {
 
 Game_dict = {}
 #
-first_step = 50
+first_step = 1000
 
 
 class Player:
@@ -114,6 +114,7 @@ def elo_calculater(elo_a, elo_b, winner, k=32):
 
 
 def join_new_player(player):
+    print(f"Joining {player.username}")
     queue_name = subject_to_queue.get(player.subject)
     if queue_name:
         player_list[queue_name].append(player)
@@ -123,6 +124,8 @@ def join_new_player(player):
     for subject, players in player_list.items():
         # 排序
         players.sort(key=lambda exist: exist.elo if exist.elo is not None else float('-inf'), reverse=True)
+
+    print(player_list[queue_name])
 
 
 def remove_player(old_player):
