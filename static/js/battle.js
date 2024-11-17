@@ -1,3 +1,8 @@
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     let current = 1;
     let opponentCurrent = 1;
@@ -270,16 +275,16 @@ document.addEventListener('DOMContentLoaded', () => {
         mainDisplay.innerHTML = `
             <div class="d-flex flex-column gap-2 w-100">
                 <!--Show self answer process-->
-                <div class="d-flex gap-2 align-items-center">
-                    <img id="self-avatar" src="img/user/${getCookie('uid')}.png" width="32" height="32" class="rounded-circle">
-                    <div class="flex-grow-1 progress-stacked" id="progress-stack-self"></div>
+                <div class="d-flex gap-2 align-items-center" data-bs-toggle="tooltip" data-bs-placement="bottom" title="${getCookie('username')}（我）">
+                    <img id="self-avatar" src="img/user/${getCookie('uid')}.png" alt="${getCookie('username')}" width="32" height="32" class="rounded-circle">
+                    <div class="flex-grow-1 progress-stacked" id="self-progress-stack"></div>
                 </div>
                 <!--Show opponent answer process-->
-                <div class="d-flex gap-2 align-items-center">
-                    <img id="opponent-avatar" src="img/user/${data.Uid}.png" width="32" height="32" class="rounded-circle">
-                    <div class="flex-grow-1 progress-stacked" id="progress-stack-opponent">
+                <div class="d-flex gap-2 align-items-center" data-bs-toggle="tooltip" data-bs-placement="bottom" title="${data.Username}">
+                    <img id="opponent-avatar" src="img/user/${data.Uid}.png" alt="${data.Username}" width="32" height="32" class="rounded-circle">
+                    <div class="flex-grow-1 progress-stacked" id="opponent-progress-stack">
                         <div class="progress" style="width: 10%" role="progressbar">
-                            <div id="1-opponent-progress" class="progress-bar progress-bar-striped progress-bar-animated text-bg-info"></div>
+                            <div id="1-opponent-progress" class="progress-bar progress-bar-striped progress-bar-animated text-bg-warning"></div>
                         </div>
                     </div>
                 </div>
@@ -291,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span id="time-left" class="h4 mb-0">20:00</span>
             </div>
         
-            <div id="question-div" class="d-flex flex-column gap-3 align-items-center">
+            <div id="question-div" class="w-100 d-flex flex-column gap-3 align-items-center">
                 <!--Show question count-->
                 <span id="question-count" class="h2 mb-0"></span>
                 <!--Show question-->
@@ -315,6 +320,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button class="btn btn-primary" id="submit-btn" style="min-width: 5em" disabled="disabled">提交</button>
             </div>
         `;
+
+        // 刷新tooltip
+        tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+
         const submitBtn = document.getElementById('submit-btn');
         const selectionARadio = document.getElementById('selection-a-radio');
         const selectionBRadio = document.getElementById('selection-b-radio');
@@ -436,7 +448,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 对手进度条往前推一格
         opponentCurrent++;
         const add_style_progress = document.createElement("div");
-        add_style_progress.className = "progress-bar progress-bar-striped progress-bar-animated text-bg-info";
+        add_style_progress.className = "progress-bar progress-bar-striped progress-bar-animated text-bg-warning";
         add_style_progress.id = `${opponentCurrent}-opponent-progress`;
         const add_width_progress = document.createElement("div");
         add_width_progress.className = "progress";
