@@ -565,7 +565,7 @@ def get_rank_info_for_subject(subject, status_model, current_user_id):
     self_rank = 0
     self_total = 0
     self_right = 0
-    self_elo = 0
+    self_elo = int(0)
     ranks = []
     for idx, (status, username) in enumerate(subject_data):
         if status.Uid == current_user_id:
@@ -763,22 +763,22 @@ def handle_submit_answer(data):
 
     if answer in game.questions[player.total].Answer:
         player.right += 1
-        player.total += 1
         right = True
-    else:
-        game.player1.total += 1
+    player.total += 1
+    print(player.total)
+    if player.total < question_nums:
+        emit('judge_result', {
+            "Correct": right,
+            "Question": game.questions[player.total].Question,
+            "SelectionA": game.questions[player.total].SelectionA,
+            "SelectionB": game.questions[player.total].SelectionB,
+            "SelectionC": game.questions[player.total].SelectionC,
+            "SelectionD": game.questions[player.total].SelectionD
+        }, to=player.sid)
+        emit('opponent', {
+            "Correct": right
+        }, to=opponent.sid)
 
-    emit('judge_result', {
-        "Correct": right,
-        "Question": game.questions[player.total].Question,
-        "SelectionA": game.questions[player.total].SelectionA,
-        "SelectionB": game.questions[player.total].SelectionB,
-        "SelectionC": game.questions[player.total].SelectionC,
-        "SelectionD": game.questions[player.total].SelectionD
-    }, to=player.sid)
-    emit('opponent', {
-        "Correct": right
-    }, to=opponent.sid)
     first = None
     if game.player1.total == question_nums and first is None:
         first = game.player1.sid
@@ -883,7 +883,6 @@ def handle_disconnect():
             Game_dict.pop(room_id)
 
 
-
 def send_match_ok(room_id):
     print('send match ok to ' + room_id)
     game = Game_dict[room_id]
@@ -896,7 +895,7 @@ def send_match_ok(room_id):
         "SelectionC": game.questions[game.player1.total].SelectionC,
         "SelectionD": game.questions[game.player1.total].SelectionD
     }, to=game.player1.sid)
-    print('player1.sid = '+game.player1.sid)
+    print('player1.sid = ' + game.player1.sid)
     emit('match_success', {
         "Username": game.player1.username,
         "Uid": game.player1.uid,

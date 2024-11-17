@@ -44,20 +44,17 @@ class Player:
         self.username = User.query.filter_by(Uid=self.uid).first().Username
 
     def get_elo(self):
-        if self.subject == 'Math1':
-            self.elo = Math1LearningStatus.query.get(Uid=self.uid).Elo
-        elif self.subject == 'Math2':
-            self.elo = Math2LearningStatus.query.get(Uid=self.uid).Elo
-        elif self.subject == 'Politic':
-            self.elo = PolLearningStatus.query.get(Uid=self.uid).Elo
-        elif self.subject == 'CS408':
-            self.elo = CS408LearningStatus.query.get(Uid=self.uid).Elo
+        if self.subject == '数学Ⅰ':
+            self.elo = Math1LearningStatus.query.filter_by(Uid=self.uid).first().Elo
+        elif self.subject == '数学Ⅱ':
+            self.elo = Math2LearningStatus.query.filter_by(Uid=self.uid).first().Elo
+        elif self.subject == '政治':
+            self.elo = PolLearningStatus.query.filter_by(Uid=self.uid).first().Elo
+        elif self.subject == '计算机专业学科基础综合':
+            self.elo = CS408LearningStatus.query.filter_by(Uid=self.uid).first().Elo
         else:
             self.elo = 0
 
-    def get_subject_model(self):
-        model = subject_to_model.get(self.subject)
-        return model
 
 
 class Game:
@@ -75,6 +72,8 @@ class Game:
                 print(self.player1.subject)
                 self.questions = (Question.query.filter(Question.Subject == self.player1.subject).
                                   limit(num_questions).all())
+                for q in self.questions:
+                    print(q.Question)
             else:
                 print(f"Warning: Unknown subject '{self.player1.subject}'")
                 self.questions = []  # 或者你可以设置为默认问题集
