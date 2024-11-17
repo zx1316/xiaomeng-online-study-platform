@@ -1,12 +1,17 @@
 import threading
 import time
+import asyncio
 from db_models import *
 
+import queue
+
+lock = threading.Lock()
+
 player_list = {
-    'Math1': [],
-    'Math2': [],
-    'Politic': [],
-    'CS408': []
+    '数学Ⅰ': [],
+    '数学Ⅱ': [],
+    '政治': [],
+    '计算机学科专业基础综合': []
 }
 
 subject_to_queue = {
@@ -25,7 +30,7 @@ subject_to_model = {
 
 Game_dict = {}
 #
-first_step = 1000
+base_step = 50
 
 
 class Player:
@@ -34,6 +39,7 @@ class Player:
         self.total = 0
         self.right = 0
         self.sid = sid
+        self.wait_time = 0
         self.subject = subject
         self.username = None
         self.elo = None
@@ -56,7 +62,6 @@ class Player:
             self.elo = 0
 
 
-
 class Game:
     def __init__(self, player1, player2):
         self.player1 = player1
@@ -65,18 +70,14 @@ class Game:
         self.get_questions()
 
     def get_questions(self):
-        player_subject = subject_to_queue.get(self.player1.subject)
         num_questions = 10
         try:
-            if player_subject is not None:
-                print(self.player1.subject)
-                self.questions = (Question.query.filter(Question.Subject == self.player1.subject).
-                                  limit(num_questions).all())
-                for q in self.questions:
-                    print(q.Question)
-            else:
-                print(f"Warning: Unknown subject '{self.player1.subject}'")
-                self.questions = []  # 或者你可以设置为默认问题集
+            print(self.player1.subject)
+            self.questions = (Question.query.filter(Question.Subject == self.player1.subject).
+                              limit(num_questions).all())
+            for q in self.questions:
+                print(q.Question)
+
         except Exception as e:
             print(f"Error while fetching questions: {e}")
             self.questions = []  # 如果查询失败，避免程序崩溃
@@ -88,13 +89,35 @@ def search_player(player):
         return False, None, None
     for exist in player_list[queue_name]:
         # 搜索现有的等待用户中是否有满足匹配要求的
-        if abs(player.elo - exist.elo) < first_step:
+        if abs(player.elo - exist.elo) < base_step:
             remove_player(exist)
             # 匹配成功
             return True, player, exist
         else:
             join_new_player(player)
             return False, None, None
+
+
+def zxx_matcher():
+    from main import app, matcher
+    with app.app_context():
+        while True:
+            lock.acquire()
+            try:
+                for subject in player_list:
+                    for player in player_list[subject]:
+                        player.wait_time += 2
+                    if len(player_list[subject]) >= 2:
+                        for i in range(0, len(player_list[subject]) - 1):
+                            player1 = player_list[subject][i]
+                            player2 = player_list[subject][i + 1]
+                            if abs(player1.elo - player2.elo) < base_step + max(player1.wait_time, player2.wait_time):
+                                player_list[subject].remove(player1)
+                                player_list[subject].remove(player2)
+                                matcher.notify_observers(player1, player2)
+            finally:
+                lock.release()
+                time.sleep(2)
 
 
 def elo_calculater(elo_a, elo_b, winner, k=32):
@@ -114,18 +137,16 @@ def elo_calculater(elo_a, elo_b, winner, k=32):
 
 
 def join_new_player(player):
-    print(f"Joining {player.username}")
-    queue_name = subject_to_queue.get(player.subject)
-    if queue_name:
-        player_list[queue_name].append(player)
-    else:
-        print(f"未知学科: {player.subject}")
+    lock.acquire()
+    try:
+        print(f"Joining {player.username}")
+        player_list[player.subject].append(player)
+        for subject, players in player_list.items():
+            # 排序
+            players.sort(key=lambda exist: exist.elo if exist.elo is not None else float('-inf'), reverse=True)
 
-    for subject, players in player_list.items():
-        # 排序
-        players.sort(key=lambda exist: exist.elo if exist.elo is not None else float('-inf'), reverse=True)
-
-    print(player_list[queue_name])
+    finally:
+        lock.release()
 
 
 def remove_player(old_player):

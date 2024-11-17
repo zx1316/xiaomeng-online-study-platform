@@ -673,6 +673,7 @@ class Observer:
         player1 = args[0]
         player2 = args[1]
         print(player1.username + ' and ' + player2.username + ' are ready to start a battle.')
+        print(player1.sid, player1.subject, player2.sid, player2.subject)
         new_game = Game(player1, player2)
         new_room_id = f'{player1.sid}_{player2.sid}_{uuid.uuid4()}'
         my_room.join_players(player1.sid, player2.sid, new_room_id)
@@ -696,14 +697,8 @@ def handle_match_request(data):
     player = Player(uid=current_user.Uid, subject=data['Subject'], sid=request.sid)
     print(player.username + ' want ' + player.subject + ' whose sid is ' + player.sid)
     # 匹配相关
-    match_result, player1, player2 = Elo_match.search_player(player)
-    if match_result:
-        # 即时匹配成功
-        matcher.notify_observers(player1, player2)
-    else:
-        Elo_match.join_new_player(player)
-        timeout = 60
-        Elo_match.start_timer(timeout)
+    Elo_match.join_new_player(player)
+
 
 
 @socketio.on('end')
@@ -891,7 +886,8 @@ def handle_disconnect():
 def send_match_ok(room_id):
     print('send match ok to ' + room_id)
     game = Game_dict[room_id]
-    emit('match_success', {
+    print(game.questions[game.player1.total].Question)
+    socketio.emit('match_success', {
         "Username": game.player2.username,
         "Uid": game.player2.uid,
         "Question": game.questions[game.player1.total].Question,
@@ -901,7 +897,7 @@ def send_match_ok(room_id):
         "SelectionD": game.questions[game.player1.total].SelectionD
     }, to=game.player1.sid)
     print('player1.sid = ' + game.player1.sid)
-    emit('match_success', {
+    socketio.emit('match_success', {
         "Username": game.player1.username,
         "Uid": game.player1.uid,
         "Question": game.questions[game.player2.total].Question,
@@ -1021,4 +1017,7 @@ def index():
 
 if __name__ == '__main__':
     initialize_database()
+    zxx_thread = threading.Thread(target=Elo_match.zxx_matcher)
+    zxx_thread.start()
     socketio.run(app, host='0.0.0.0', debug=True)
+
