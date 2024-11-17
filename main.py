@@ -753,13 +753,15 @@ def handle_submit_answer(data):
     if answer in game.questions[player.total].Answer:
         player.right += 1
         right = True
+    answer_json = json.loads(game.questions[player.total].Answer)
     player.total += 1
     print(player.total)
+
     if player.total < question_nums:
         emit('judge_result', {
             "Correct": right,
             "Question": game.questions[player.total].Question,
-            "RightAnswer": game.questions[player.total].Answer,
+            "RightAnswer": answer_json,
             "SelectionA": game.questions[player.total].SelectionA,
             "SelectionB": game.questions[player.total].SelectionB,
             "SelectionC": game.questions[player.total].SelectionC,
@@ -772,7 +774,7 @@ def handle_submit_answer(data):
         emit('judge_result', {
             "Correct": right,
             "Question": None,
-            "RightAnswer": None,
+            "RightAnswer": answer_json,
             "SelectionA": None,
             "SelectionB": None,
             "SelectionC": None,
