@@ -838,8 +838,7 @@ def handle_disconnect():
 def send_match_ok(room_id):
     print('send match ok to ' + room_id)
     game = Game_dict[room_id]
-    emit('match', {
-        "Type": "match_success",
+    emit('match_success', {
         "Username": game.player2.username,
         "Uid": game.player2.uid,
         "Question": game.questions[game.player1.total].Question,
@@ -849,8 +848,7 @@ def send_match_ok(room_id):
         "SelectionD": game.questions[game.player1.total].SelectionD
     }, to=game.player1.sid)
     print(game.player1.sid)
-    emit('match', {
-        "Type": "match_success",
+    emit('match_success', {
         "Username": game.player1.username,
         "Uid": game.player1.uid,
         "Question": game.questions[game.player2.total].Question,
