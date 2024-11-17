@@ -111,8 +111,8 @@ document.addEventListener('DOMContentLoaded', () => {
             nextBtn.style.visibility = 'visible';
         }
 
-        questionCount.innerText = `回顾 ${current}/${questionArr.length}`;
-        const question = questionArr[current - 1];
+        questionCount.innerText = `回顾 ${reviewCurrent}/${questionArr.length}`;
+        const question = questionArr[reviewCurrent - 1];
         questionText.innerHTML = question.Question.replace(/%%%(.+?)@@@/g, '<img class="question-img" src="img/q/$1">');
         if (question.SelectionA === null) {
             // 填空题
@@ -203,19 +203,19 @@ document.addEventListener('DOMContentLoaded', () => {
             <p id="review-question-text"></p>
             <!--选择题作答-->
             <div id="review-selection-area" class="list-group list-group-checkable d-grid gap-2 border-0 visually-hidden">
-                <input class="list-group-item-check pe-none opacity-100" type="radio" name="listGroupCheckableRadios" id="review-selection-a-radio" value="A" disabled="disabled">
-                <label class="list-group-item rounded-3 py-3" for="review-selection-a-radio" id="review-selection-a"></label>
-                <input class="list-group-item-check pe-none opacity-100" type="radio" name="listGroupCheckableRadios" id="review-selection-b-radio" value="B" disabled="disabled">
-                <label class="list-group-item rounded-3 py-3" for="review-selection-b-radio" id="review-selection-b"></label>
-                <input class="list-group-item-check pe-none opacity-100" type="radio" name="listGroupCheckableRadios" id="review-selection-c-radio" value="C" disabled="disabled">
-                <label class="list-group-item rounded-3 py-3" for="review-selection-c-radio" id="review-selection-c"></label>
-                <input class="list-group-item-check pe-none opacity-100" type="radio" name="listGroupCheckableRadios" id="review-selection-d-radio" value="D" disabled="disabled">
-                <label class="list-group-item rounded-3 py-3" for="review-selection-d-radio" id="review-selection-d"></label>
+                <input class="list-group-item-check pe-none" type="radio" name="listGroupCheckableRadios" id="review-selection-a-radio" value="A" disabled="disabled">
+                <label class="list-group-item rounded-3 py-3 opacity-100" for="review-selection-a-radio" id="review-selection-a"></label>
+                <input class="list-group-item-check pe-none" type="radio" name="listGroupCheckableRadios" id="review-selection-b-radio" value="B" disabled="disabled">
+                <label class="list-group-item rounded-3 py-3 opacity-100" for="review-selection-b-radio" id="review-selection-b"></label>
+                <input class="list-group-item-check pe-none" type="radio" name="listGroupCheckableRadios" id="review-selection-c-radio" value="C" disabled="disabled">
+                <label class="list-group-item rounded-3 py-3 opacity-100" for="review-selection-c-radio" id="review-selection-c"></label>
+                <input class="list-group-item-check pe-none" type="radio" name="listGroupCheckableRadios" id="review-selection-d-radio" value="D" disabled="disabled">
+                <label class="list-group-item rounded-3 py-3 opacity-100" for="review-selection-d-radio" id="review-selection-d"></label>
             </div>
             <!--填空题你的答案-->
             <div class="form-floating answer-container visually-hidden" id="review-blank-area">
-                <input class="form-control" id="review-blank-input">
-                <label class="list-group-item rounded-3 py-3" for="review-blank-input" disabled="disabled">你的答案</label>
+                <input class="form-control" id="review-blank-input" disabled="disabled">
+                <label class="list-group-item rounded-3 py-3" for="review-blank-input">你的答案</label>
             </div>
             <!--填空题正确答案-->
             <div class="form-floating answer-container visually-hidden" id="review-blank-correct-area">
@@ -420,7 +420,7 @@ document.addEventListener('DOMContentLoaded', () => {
             waitForFinishDiv.id = 'wait-for-finish-div';
             waitForFinishDiv.className = 'd-flex flex-column align-items-center';
             waitForFinishDiv.innerHTML = `
-                <img src="img/img2.png" alt="wait for finish" width="192">
+                <img src="img/wait.png" alt="wait for finish" width="192">
                 <h2 class="mt-3">正在等待对手作答完毕</h2>
                 <button id="direct-review-btn" class="btn btn-primary mt-1">不等了，直接回顾</button>
             `;
@@ -475,8 +475,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.Self >= 0 && data.Opponent <= 0) {
             // 你胜利
             resultDiv.innerHTML = `
-                <img src="img/img1.png" alt="win" width="192">
-                <h2 class="mt-3">恭喜你胜出！🎉🎉🎉</h2>
+                <img src="img/win.png" alt="win" width="192">
+                <h2 class="mt-3">恭喜你胜出🎉🎉🎉</h2>
                 <span>${getCookie('username')}: <span class="text-danger">+${Math.round(data.Self)}</span></span>
                 <span>${opponentName}: <span class="text-primary">-${Math.round(-data.Opponent)}</span></span>
                 <button id="review-btn" class="btn btn-primary mt-3" style="min-width: 5em">回顾</button>
@@ -484,10 +484,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // 你失败
             resultDiv.innerHTML = `
-                <img src="img/img3.png" alt="lose" width="192">
-                <h2 class="mt-3">请再接再厉！</h2>
-                <span>${getCookie('username')}: <span class="text-danger">${Math.round(data.Self)}</span></span>
-                <span>${opponentName}: <span class="text-primary">+${Math.round(data.Opponent)}</span></span>
+                <img src="img/lose.png" alt="lose" width="192">
+                <h2 class="mt-3">请再接再厉~</h2>
+                <span>${getCookie('username')}: <span class="text-primary">${Math.round(data.Self)}</span></span>
+                <span>${opponentName}: <span class="text-danger">+${Math.round(data.Opponent)}</span></span>
                 <button id="review-btn" class="btn btn-primary mt-3" style="min-width: 5em">回顾</button>
             `;
         }
