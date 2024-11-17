@@ -45,13 +45,13 @@ class Player:
 
     def get_elo(self):
         if self.subject == 'Math1':
-            self.elo = Math1LearningStatus.query.get(Uid=self.uid).elo
+            self.elo = Math1LearningStatus.query.get(Uid=self.uid).Elo
         elif self.subject == 'Math2':
-            self.elo = Math2LearningStatus.query.get(Uid=self.uid).elo
+            self.elo = Math2LearningStatus.query.get(Uid=self.uid).Elo
         elif self.subject == 'Politic':
-            self.elo = PolLearningStatus.query.get(Uid=self.uid).elo
+            self.elo = PolLearningStatus.query.get(Uid=self.uid).Elo
         elif self.subject == 'CS408':
-            self.elo = CS408LearningStatus.query.get(Uid=self.uid).elo
+            self.elo = CS408LearningStatus.query.get(Uid=self.uid).Elo
         else:
             self.elo = 0
 

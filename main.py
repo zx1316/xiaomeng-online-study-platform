@@ -611,6 +611,33 @@ def rank_info():
     return jsonify(response_data), 200
 
 
+class my_room:
+    def __init__(self):
+        self.dict1 = {}
+        self.dict2 = {}
+
+    def join_players(self, sid1, sid2, room_id):
+        self.dict1[sid1] = room_id
+        self.dict2[sid2] = room_id
+
+    def remove_players(self, sid1, sid2):
+        if self.dict1.get(sid1):
+            self.dict1.pop(sid1)
+            self.dict2.pop(sid2)
+        else:
+            self.dict2.pop(sid2)
+            self.dict1.pop(sid1)
+
+    def get_room(self, sid):
+        if self.dict1.get(sid):
+            return self.dict1[sid]
+        else:
+            return self.dict2[sid]
+
+
+my_room = my_room()
+
+
 def authenticated_only(f):
     # 长连接鉴权
     @functools.wraps(f)
@@ -645,11 +672,12 @@ class Observer:
         # 待写
         player1 = args[0]
         player2 = args[1]
-        print(player1.username + ' and ' + player2.username + 'are ready to start a battle.')
+        print(player1.username + ' and ' + player2.username + ' are ready to start a battle.')
         new_game = Game(player1, player2)
         new_room_id = f'{player1.sid}_{player2.sid}_{uuid.uuid4()}'
-        join_room(new_room_id, player1.sid)
-        join_room(new_room_id, player2.sid)
+        join_room(room=new_room_id, sid=player1.sid)
+        join_room(room=new_room_id, sid=player2.sid)
+        my_room.join_players(player1.sid, player2.sid, new_room_id)
         Game_dict[new_room_id] = new_game
         send_match_ok(new_room_id)
 
@@ -668,7 +696,7 @@ def handle_connect():
 @authenticated_only
 def handle_match_request(data):
     player = Player(uid=current_user.Uid, subject=data['Subject'], sid=request.sid)
-    print(player.username + ' want ' + player.subject + 'whose sid is ' +player.sid)
+    print(player.username + ' want ' + player.subject + ' whose sid is ' + player.sid)
     # 匹配相关
     match_result, player1, player2 = Elo_match.search_player(player)
     if match_result:
@@ -676,8 +704,11 @@ def handle_match_request(data):
         # 即时匹配成功
         new_game = Game(player1, player2)
         new_room_id = f'{player1.sid}_{player2.sid}_{uuid.uuid4()}'
-        join_room(new_room_id, player1.sid)
-        join_room(new_room_id, player2.sid)
+        join_room(room=new_room_id, sid=player1.sid)
+        join_room(room=new_room_id, sid=player2.sid)
+        my_room.join_players(player1.sid, player2.sid, new_room_id)
+        print(new_room_id)
+        print(my_room.get_room(player1.sid))
         Game_dict[new_room_id] = new_game
 
     else:
@@ -704,12 +735,23 @@ def handle_friend_end_request(data):
     pass
 
 
+def get_model(subject):
+    subject_to_model = {
+        "数学Ⅰ": Math1LearningStatus,
+        "数学Ⅱ": Math2LearningStatus,
+        "政治": PolLearningStatus,
+        "计算机学科专业基础综合": CS408LearningStatus
+    }
+    return subject_to_model[subject]
+
+
 @socketio.on('submit_answer')
 @authenticated_only
 def handle_submit_answer(data):
     answer = data['Answer']
     sid = request.sid
-    room_id = rooms(sid=sid)[0]
+    room_id = my_room.get_room(sid)
+    print('room_id = ' + room_id)
     game = Game_dict[room_id]
     right = False
     if sid == game.player1.sid:
@@ -745,12 +787,13 @@ def handle_submit_answer(data):
     if game.player1.total == question_nums and game.player2.total == question_nums:
         # 正常结束
         # 更新数据库
-        player1_status = game.player1.get_subject_model.query.filter_by(Uid=game.player1.uid).first()
-        player2_status = game.player2.get_subject_model.query.filter_by(Uid=game.player2.uid).first()
-        player1_status.total += game.player1.total
-        player1_status.right += game.player1.right
-        player2_status.total += game.player2.total
-        player2_status.right += game.player2.right
+        model = get_model(game.player1.subject)
+        player1_status = model.query.filter_by(Uid=game.player1.uid).first()
+        player2_status = model.query.filter_by(Uid=game.player2.uid).first()
+        player1_status.Total += game.player1.total
+        player1_status.Right += game.player1.right
+        player2_status.Total += game.player2.total
+        player2_status.Right += game.player2.right
         # 判断胜负
         if game.player1.right > game.player2.right:
             winner = 0
@@ -762,8 +805,8 @@ def handle_submit_answer(data):
             else:
                 winner = 1
         elo_delta_a, elo_delta_b = Elo_match.elo_calculater(game.player1.elo, game.player2.elo, winner)
-        player1_status.elo = game.player1.elo + elo_delta_a
-        player2_status.elo = game.player2.elo + elo_delta_b
+        player1_status.Elo = game.player1.elo + elo_delta_a
+        player2_status.Elo = game.player2.elo + elo_delta_b
         db.session.commit()
         # 发送结果
         emit('match_result', {
@@ -778,23 +821,26 @@ def handle_submit_answer(data):
         disconnect(game.player2.sid)
         # 事后清理
         Game_dict.pop(room_id)
+        my_room.remove_players(game.player1.sid, game.player2.sid)
 
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    print(request.sid + "is disconnected")
+    print(request.sid + " is disconnected")
     sid = request.sid
-    room_id = rooms(sid=sid)
+    room_id = my_room.get_room(sid)
+    print(room_id)
     if room_id is None:
         # 还未分配房间号 匹配中断开了
+        print("room is None")
         Elo_match.remove_player_by_sid(sid=sid)
-    else:
-        room_id = room_id[0]
+        return
     # 得区分事件
 
     # 处理浏览器主动断开连接
 
     game = Game_dict[room_id]
+    # player1 是断开连接的
     if Game_dict[room_id].player1.sid == sid:
         player = Game_dict[room_id].player1
         opponent = Game_dict[room_id].player2
@@ -804,35 +850,38 @@ def handle_disconnect():
 
     if player.total < question_nums:
         # 直接判负
-        player1_status = game.player1.get_subject_model.query.filter_by(Uid=game.player1.uid).first()
-        player2_status = game.player2.get_subject_model.query.filter_by(Uid=game.player2.uid).first()
-        player1_status.total += game.player1.total
-        player1_status.right += game.player1.right
-        player2_status.total += game.player2.total
-        player2_status.right += game.player2.right
+        model = get_model(game.player1.subject)
+        player1_status = model.query.filter_by(Uid=game.player1.uid).first()
+        player2_status = model.query.filter_by(Uid=game.player2.uid).first()
+        player1_status.Total += game.player1.total
+        player1_status.Right += game.player1.right
+        player2_status.Total += game.player2.total
+        player2_status.Right += game.player2.right
         if player.sid == game.player1.sid:
             winner = 1
         else:
             winner = 0
         elo_delta_a, elo_delta_b = Elo_match.elo_calculater(game.player1.elo, game.player2.elo, winner)
-        player1_status.elo = game.player1.elo + elo_delta_a
-        player2_status.elo = game.player2.elo + elo_delta_b
+        print(elo_delta_a, elo_delta_b)
+        player1_status.Elo = game.player1.elo + elo_delta_a
+        player2_status.Elo = game.player2.elo + elo_delta_b
         db.session.commit()
         # 发送结果
-        emit('match', {
-            "Type": "match_result",
+        emit('match_result', {
             "self": elo_delta_a,
             "opponent": elo_delta_b
         }, to=game.player1.sid)
-        emit('match', {
-            "Type": "match_result",
+        emit('match_result', {
             "self": elo_delta_b,
             "opponent": elo_delta_a
         }, to=game.player2.sid)
         disconnect(game.player1.sid)
         disconnect(game.player2.sid)
         # 事后清理
-        Game_dict.pop(room_id)
+        if Game_dict.get(room_id):
+            my_room.remove_players(game.player1.sid, game.player2.sid)
+            Game_dict.pop(room_id)
+
 
 
 def send_match_ok(room_id):
@@ -847,7 +896,7 @@ def send_match_ok(room_id):
         "SelectionC": game.questions[game.player1.total].SelectionC,
         "SelectionD": game.questions[game.player1.total].SelectionD
     }, to=game.player1.sid)
-    print(game.player1.sid)
+    print('player1.sid = '+game.player1.sid)
     emit('match_success', {
         "Username": game.player1.username,
         "Uid": game.player1.uid,
@@ -857,7 +906,8 @@ def send_match_ok(room_id):
         "SelectionC": game.questions[game.player2.total].SelectionC,
         "SelectionD": game.questions[game.player2.total].SelectionD
     }, to=game.player2.sid)
-    print(game.player2.sid)
+    print('player2.sid = ' + game.player2.sid)
+
 
 # static res
 @app.route('/js/<path:filename>')
