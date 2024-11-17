@@ -421,18 +421,15 @@ document.addEventListener('DOMContentLoaded', () => {
             waitForFinishDiv.className = 'd-flex flex-column align-items-center';
             waitForFinishDiv.innerHTML = `
                 <img src="img/img2.png" alt="wait for finish" width="192">
-                <h2 class="pt-3">正在等待您的对手作答完毕</h2>
+                <h2 class="mt-3">正在等待您的对手作答完毕</h2>
                 <button id="direct-review-btn" class="btn btn-primary">不等了，直接回顾</button>
             `;
+            mainDisplay.appendChild(waitForFinishDiv);
             const directReviewBtn = document.getElementById('direct-review-btn');
             // 直接显示回顾
             directReviewBtn.addEventListener('click', () => {
                 new bootstrap.Modal(document.getElementById('warning-modal')).show();   // 显示模态框询问
-                // todo 需要弹出一个模态框告诉用户分数将在稍后变更
-                socket.disconnect();
-                initReview();
             });
-            mainDisplay.appendChild(waitForFinishDiv);
         }
     });
 
@@ -477,24 +474,24 @@ document.addEventListener('DOMContentLoaded', () => {
             // 你胜利
             resultDiv.innerHTML = `
                 <img src="img/img1.png" alt="win" width="192">
-                <h2 class="pt-3">恭喜你胜出！🎉🎉🎉</h2>
-                <span>${getCookie('username')}: <span class="text-danger">+${data.Self}</span></span>
-                <span>${opponentName}: <span class="text-primary">-${data.Opponent}</span></span>
-                <button id="review-btn" class="btn btn-primary pt-3" style="min-width: 5em">回顾</button>
+                <h2 class="mt-3">恭喜你胜出！🎉🎉🎉</h2>
+                <span>${getCookie('username')}: <span class="text-danger">+${Math.round(data.Self)}</span></span>
+                <span>${opponentName}: <span class="text-primary">-${Math.round(-data.Opponent)}</span></span>
+                <button id="review-btn" class="btn btn-primary mt-3" style="min-width: 5em">回顾</button>
             `;
         } else {
             // 你失败
             resultDiv.innerHTML = `
                 <img src="img/img3.png" alt="lose" width="192">
-                <h2 class="pt-3">请再接再厉！</h2>
-                <span>${getCookie('username')}: <span class="text-danger">${data.Self}</span></span>
-                <span>${opponentName}: <span class="text-primary">+${data.Opponent}</span></span>
-                <button id="review-btn" class="btn btn-primary pt-3" style="min-width: 5em">回顾</button>
+                <h2 class="mt-3">请再接再厉！</h2>
+                <span>${getCookie('username')}: <span class="text-danger">${Math.round(data.Self)}</span></span>
+                <span>${opponentName}: <span class="text-primary">+${Math.round(data.Opponent)}</span></span>
+                <button id="review-btn" class="btn btn-primary mt-3" style="min-width: 5em">回顾</button>
             `;
         }
+        mainDisplay.appendChild(resultDiv);
         const reviewBtn = document.getElementById('review-btn');
         reviewBtn.addEventListener('click', initReview);    // 点击按钮后回顾
-        mainDisplay.appendChild(resultDiv);
     });
 
     // 确定直接回顾

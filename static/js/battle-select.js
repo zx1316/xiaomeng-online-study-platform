@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         <div class="col-md p-0 pt-3 pt-md-0 ps-md-2">
                             <div class="h-100 p-3 d-flex flex-column justify-content-center align-items-center gap-2 border border-2 border-info-subtle" style="border-radius: 16px">
-                                <span class="display-2 text-info">${element.Elo}</span>
+                                <span class="display-2 text-info">${Math.round(element.Elo)}</span>
                                 <span>做题数: ${element.Total}</span>
                                 <span>正确率: ${element.Total === 0 ? '无' : (element.Right / element.Total * 100).toFixed(2) + '%'}</span>
                                 <a class="btn btn-lg btn-primary mt-2 mt-md-3" style="min-width: 6.5em" href="battle.html?subject=${element.Subject}" target="_blank">开始匹配</a>
@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         <span>${element1.Username}</span>
                                     </div>
                                 </td>
-                            <td class="text-end text-danger">${element1.Elo}</td>
+                            <td class="text-end text-danger">${Math.round(element1.Elo)}</td>
                         `;
                     } else {
                         tr.innerHTML = `
@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         <span>${element1.Username}</span>
                                     </div>
                                 </td>
-                            <td class="text-end">${element1.Elo}</td>
+                            <td class="text-end">${Math.round(element1.Elo)}</td>
                         `;
                     }
                     tBody.appendChild(tr);
@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <span>${username.innerText}</span>
                                 </div>
                             </td>
-                            <td class="text-end">${element.Elo}</td>
+                            <td class="text-end">${Math.round(element.Elo)}</td>
                         </tr>
                     `;
                     tBody.appendChild(tr);
