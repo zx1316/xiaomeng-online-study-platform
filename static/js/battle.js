@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function initReview() {
-        const progressHtml = document.getElementById('progress-stack-self').innerHTML;
+        const progressHtml = document.getElementById('self-progress-stack').innerHTML;
         // 这里不需要改主容器的类
         mainDisplay.innerHTML = `
             <!--Show answer process-->
@@ -421,8 +421,8 @@ document.addEventListener('DOMContentLoaded', () => {
             waitForFinishDiv.className = 'd-flex flex-column align-items-center';
             waitForFinishDiv.innerHTML = `
                 <img src="img/img2.png" alt="wait for finish" width="192">
-                <h2 class="mt-3">正在等待您的对手作答完毕</h2>
-                <button id="direct-review-btn" class="btn btn-primary">不等了，直接回顾</button>
+                <h2 class="mt-3">正在等待对手作答完毕</h2>
+                <button id="direct-review-btn" class="btn btn-primary mt-1">不等了，直接回顾</button>
             `;
             mainDisplay.appendChild(waitForFinishDiv);
             const directReviewBtn = document.getElementById('direct-review-btn');
@@ -442,17 +442,19 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             currentProgress.className = "progress-bar bg-danger";       // 对手回答错误
         }
-        // 对手进度条往前推一格
-        opponentCurrent++;
-        const add_style_progress = document.createElement("div");
-        add_style_progress.className = "progress-bar progress-bar-striped progress-bar-animated text-bg-warning";
-        add_style_progress.id = `${opponentCurrent}-opponent-progress`;
-        const add_width_progress = document.createElement("div");
-        add_width_progress.className = "progress";
-        add_width_progress.role = "progressbar";
-        add_width_progress.style.width="10%";
-        add_width_progress.appendChild(add_style_progress);
-        opponentProgressStack.appendChild(add_width_progress);
+        // 如果不是最后一题，对手进度条往前推一格
+        if (opponentCurrent < 10) {
+            opponentCurrent++;
+            const add_style_progress = document.createElement("div");
+            add_style_progress.className = "progress-bar progress-bar-striped progress-bar-animated text-bg-warning";
+            add_style_progress.id = `${opponentCurrent}-opponent-progress`;
+            const add_width_progress = document.createElement("div");
+            add_width_progress.className = "progress";
+            add_width_progress.role = "progressbar";
+            add_width_progress.style.width = "10%";
+            add_width_progress.appendChild(add_style_progress);
+            opponentProgressStack.appendChild(add_width_progress);
+        }
     });
 
     // 对战结果
