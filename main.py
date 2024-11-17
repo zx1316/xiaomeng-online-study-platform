@@ -759,6 +759,7 @@ def handle_submit_answer(data):
         emit('judge_result', {
             "Correct": right,
             "Question": game.questions[player.total].Question,
+            "RightAnswer": game.questions[player.total].Answer,
             "SelectionA": game.questions[player.total].SelectionA,
             "SelectionB": game.questions[player.total].SelectionB,
             "SelectionC": game.questions[player.total].SelectionC,
@@ -771,11 +772,15 @@ def handle_submit_answer(data):
         emit('judge_result', {
             "Correct": right,
             "Question": None,
+            "RightAnswer": None,
             "SelectionA": None,
             "SelectionB": None,
             "SelectionC": None,
             "SelectionD": None
-        })
+        }, to=player.sid)
+        emit('opponent', {
+            "Correct": right
+        }, to=opponent.sid)
     first = None
     if game.player1.total == question_nums and first is None:
         first = game.player1.sid
