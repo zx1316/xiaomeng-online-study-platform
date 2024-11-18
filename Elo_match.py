@@ -32,6 +32,7 @@ Game_dict = {}
 base_step = 50
 Game_queue = []
 
+
 class Player:
     def __init__(self, uid, sid, subject):
         self.uid = uid
@@ -74,7 +75,8 @@ class Game:
             print(self.player1.subject)
             self.questions = (Question.query.order_by(func.random()).filter(Question.Subject == self.player1.subject).
                               limit(num_questions).all())
-
+            for q in self.questions:
+                print(q.Answer)
         except Exception as e:
             print(f"Error while fetching questions: {e}")
             self.questions = []  # 如果查询失败，避免程序崩溃
@@ -119,9 +121,6 @@ def zxx_worker():
                 time.sleep(2)
 
 
-
-
-
 def elo_calculater(elo_a, elo_b, winner, k=32):
     # K值可变
     expected_a = 1 / (1 + 10 ** ((elo_b - elo_a) / 400))
@@ -142,21 +141,21 @@ def join_new_player(player):
     lock.acquire()
     try:
         print(f"Joining {player.username}")
-        if player not in player_list[player.subject]:
-            player_list[player.subject].append(player)
-            for subject, players in player_list.items():
-                # 排序
-                players.sort(key=lambda exist: exist.elo if exist.elo is not None else float('-inf'), reverse=True)
+        for old_player in player_list[player.subject]:
+            if old_player.uid == player.uid:
+                print('相同玩家')
+                return
+
+        player_list[player.subject].append(player)
+        for subject, players in player_list.items():
+            # 排序
+            players.sort(key=lambda exist: exist.elo if exist.elo is not None else float('-inf'), reverse=True)
     finally:
         lock.release()
 
 
 def remove_player(old_player):
-    queue_name = subject_to_queue.get(old_player.subject)
-    if queue_name:
-        player_list[queue_name].remove(old_player)
-    else:
-        print(f"未知学科: {old_player.subject}")
+    player_list[old_player.subject].remove(old_player)
 
 
 def remove_player_by_sid(sid):
@@ -164,12 +163,6 @@ def remove_player_by_sid(sid):
         for player in player_list[subject]:
             if player.sid == sid:
                 remove_player(player)
-
-
-
-
-
-
 
 
 if __name__ == '__main__':
