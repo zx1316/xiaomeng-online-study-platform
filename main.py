@@ -978,6 +978,13 @@ def add_notes_page():
     return send_from_directory(app.config['STATIC_FOLDER'], 'wrong-detail.html')
 
 
+@app.route('/profile.html')
+@login_required
+@student_required
+def profile_page():
+    return send_from_directory(app.config['STATIC_FOLDER'], 'profile.html')
+
+
 @app.route('/signin.html')
 def login_page():
     if current_user.is_authenticated:
