@@ -783,12 +783,12 @@ def handle_submit_answer(data):
             "Self": elo_delta_b,
             "Opponent": elo_delta_a
         }, to=game.player2.sid)
-        disconnect(game.player1.sid)
-        disconnect(game.player2.sid)
         # 事后清理
         if Game_dict.get(room_id):
             my_room.remove_players(game.player1.sid, game.player2.sid)
             Game_dict.pop(room_id)
+        disconnect(game.player1.sid)
+        disconnect(game.player2.sid)
 
 
 @socketio.on('disconnect')
