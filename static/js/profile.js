@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     let exerciseListInner = '', battleListInner = '';
+    let uploadFlag = false;
 
     const username = document.getElementById('username');
     const uid = document.getElementById('uid');
@@ -127,4 +128,52 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
         })
         .catch(error => console.error('Error:', error));
+
+    // 设置点击头像的事件
+    const fileInput = document.getElementById('file-input');
+    bigUserAvatar.addEventListener('click', () => {
+        if (!uploadFlag) {
+            fileInput.click();
+        }
+    });
+    // 当文件被选中后，执行上传操作
+    fileInput.addEventListener('change', function() {
+        const file = fileInput.files[0];
+        if (file) {
+            uploadFlag = true;
+            const formData = new FormData();
+            formData.append('Avatar', file); // 'file' 是服务器端接收文件的字段名
+
+            // 使用fetch API发送请求
+            fetch('/change_avatar', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                // 检查响应状态码
+                if (response.status === 200) {
+                    // 状态码为200时，处理正常情况
+                    return response.text()  // 由于内容为空，这里使用text()方法
+                } else if (response.status === 400) {
+                    // 状态码为400时，解析JSON错误信息
+                    return response.json().then(data => {
+                        throw new Error(data.Msg)
+                    });
+                } else {
+                    // 其他状态码，抛出错误
+                    throw new Error('Unexpected status code: ' + response.status)
+                }
+            })
+            .then(data => {
+                // 处理上传成功后的逻辑
+                uploadFlag = false;
+                const okModal = new bootstrap.Modal(document.getElementById('avatar-ok-modal'));
+                okModal.show();
+            })
+            .catch(error => {
+                uploadFlag = false;
+                alert('Error: ' + error);
+            });
+        }
+    });
 });
