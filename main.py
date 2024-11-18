@@ -15,7 +15,7 @@ from werkzeug.exceptions import NotFound
 
 import Elo_match
 from db_models import *
-from image_process import process_images_and_text
+from image_process import process_images_and_text,save_image
 from Elo_match import Player, Game, Game_dict, player_list, lock, base_step, my_room_lock, lock2
 
 IMAGE_SAVE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/img/q')
@@ -889,6 +889,25 @@ def zxx_matcher():
         }, to=game.player2.sid)
         print('player2.sid = ' + game.player2.sid)
     print('zxx finished')
+
+
+@app.route('/change_avatar', methods=['POST'])
+@login_required
+@student_required
+@validate_json({
+    "type": "object",
+    "properties": {
+        "Avatar": {"type": "bytes"}
+    },
+    "required": ["Avatar"]
+})
+def change_avatar(json_data):
+    avatar = json_data.get('Avatar')
+    image_filename, error = save_image(avatar, _type="avatar")
+    print("image_name:", image_filename)
+    if error:
+        return jsonify({"Msg": error}), 400
+    return '', 200
 
 
 # static res

@@ -3,8 +3,11 @@ import glob
 import hashlib
 import os
 import re
+from PIL import Image
+from io import BytesIO
 
 IMAGE_SAVE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/img/q')
+AVATAR_SAVE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/img/user')
 
 
 def extract_image_hashes(text):
@@ -12,7 +15,7 @@ def extract_image_hashes(text):
     return set(re.findall(r'%%%([^@]+)@@@', text))
 
 
-def save_image(base64_str):
+def save_image(base64_str, _type="question"):
     try:
         image_data = base64.b64decode(base64_str)
     except base64.binascii.Error:
@@ -21,11 +24,26 @@ def save_image(base64_str):
     if image_data[:8] != b'\x89PNG\r\n\x1a\n':
         return None, "Image must be in PNG format"
 
-    # Create MD5 hash for image name
+    if _type is not "question":
+        try:
+            image = Image.open(BytesIO(image_data))
+        except Exception as e:
+            return None, f"Cannot open.Invalid image data: {str(e)}"
+        max_dimension = max(image.size)
+        if max_dimension > 128:
+            scale_ratio = 128 / max_dimension
+            new_size = (int(image.size[0] * scale_ratio), int(image.size[1] * scale_ratio))
+            image = image.resize(new_size, Image.ANTIALIAS)
+            output = BytesIO()
+            image.save(output, format='PNG')
+            image_data = output.getvalue()
+
     md5_hash = hashlib.md5(image_data).hexdigest()
     file_name = f"{md5_hash}.png"
-    file_path = os.path.join(IMAGE_SAVE_PATH, file_name)
-
+    if _type is "question":
+        file_path = os.path.join(IMAGE_SAVE_PATH, file_name)
+    else:
+        file_path = os.path.join(AVATAR_SAVE_PATH, file_name)
     with open(file_path, 'wb') as f:
         f.write(image_data)
     return file_name, None
