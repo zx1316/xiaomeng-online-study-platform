@@ -41,6 +41,7 @@ class Player:
         self.sid = sid
         self.wait_time = 0
         self.subject = subject
+        self.win = 0
         self.username = None
         self.elo = None
         self.get_elo()

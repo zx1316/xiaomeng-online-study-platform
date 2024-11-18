@@ -204,7 +204,7 @@ def add_question(json_data):
         SelectionB=processed_data.get('SelectionB'),
         SelectionC=processed_data.get('SelectionC'),
         SelectionD=processed_data.get('SelectionD'),
-        Answer=json.dumps(processed_data['Answer'])
+        Answer=json.dumps(processed_data['Answer'], ensure_ascii=False)
     )
     db.session.add(new_question)
     db.session.commit()
@@ -252,7 +252,7 @@ def update_question(json_data):
     question.SelectionB = processed_data.get('SelectionB')
     question.SelectionC = processed_data.get('SelectionC')
     question.SelectionD = processed_data.get('SelectionD')
-    question.Answer = json.dumps(processed_data['Answer'])
+    question.Answer = json.dumps(processed_data['Answer'], ensure_ascii=False)
 
     db.session.commit()
     return '', 200
@@ -712,9 +712,16 @@ def handle_submit_answer(data):
         player = game.player2
         opponent = game.player1
     print(player.username, player.total)
+    print('answer : ' + answer)
     if answer in game.questions[player.total].Answer:
         player.right += 1
         right = True
+    else:
+        # 记录错题本
+        wrong_answer = WrongAnswer(Uid=player.uid, Qid=game.questions[player.total].Qid, WrongAnswer=answer)
+        db.session.add(wrong_answer)
+        db.session.commit()
+
     answer_json = json.loads(game.questions[player.total].Answer)
     player.total += 1
     print(player.total)
@@ -745,11 +752,10 @@ def handle_submit_answer(data):
         emit('opponent', {
             "Correct": right
         }, to=opponent.sid)
-    first = None
-    if game.player1.total == question_nums and first is None:
-        first = game.player1.sid
-    if game.player2.total == question_nums and first is None:
-        first = game.player2.sid
+
+    if player.total == question_nums and opponent.win == 0:
+        player.win = 1
+
     if game.player1.total == question_nums and game.player2.total == question_nums:
         # 正常结束
         # 更新数据库
@@ -766,7 +772,7 @@ def handle_submit_answer(data):
         elif game.player2.right > game.player1.right:
             winner = 1
         else:
-            if first == game.player1.sid:
+            if game.player1.win == 1:
                 winner = 0
             else:
                 winner = 1
