@@ -29,7 +29,7 @@ subject_to_model = {
 
 Game_dict = {}
 #
-base_step = 200
+base_step = 50
 Game_queue = []
 
 class Player:
@@ -72,7 +72,7 @@ class Game:
         num_questions = 10
         try:
             print(self.player1.subject)
-            self.questions = (Question.query.filter(Question.Subject == self.player1.subject).
+            self.questions = (Question.query.order_by(func.random()).filter(Question.Subject == self.player1.subject).
                               limit(num_questions).all())
 
         except Exception as e:
