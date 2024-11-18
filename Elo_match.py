@@ -1,12 +1,11 @@
 import threading
 import time
-import asyncio
+import uuid
 from db_models import *
 
-import queue
-
 lock = threading.Lock()
-
+my_room_lock = threading.Lock()
+lock2 = threading.Lock()
 player_list = {
     '数学Ⅰ': [],
     '数学Ⅱ': [],
@@ -30,8 +29,8 @@ subject_to_model = {
 
 Game_dict = {}
 #
-base_step = 50
-
+base_step = 200
+Game_queue = []
 
 class Player:
     def __init__(self, uid, sid, subject):
@@ -75,8 +74,6 @@ class Game:
             print(self.player1.subject)
             self.questions = (Question.query.filter(Question.Subject == self.player1.subject).
                               limit(num_questions).all())
-            for q in self.questions:
-                print(q.Question)
 
         except Exception as e:
             print(f"Error while fetching questions: {e}")
@@ -98,8 +95,8 @@ def search_player(player):
             return False, None, None
 
 
-def zxx_matcher():
-    from main import app, matcher
+def zxx_worker():
+    from main import app, my_room
     with app.app_context():
         while True:
             lock.acquire()
@@ -114,10 +111,15 @@ def zxx_matcher():
                             if abs(player1.elo - player2.elo) < base_step + max(player1.wait_time, player2.wait_time):
                                 player_list[subject].remove(player1)
                                 player_list[subject].remove(player2)
-                                matcher.notify_observers(player1, player2)
+                                print(player1.username + ' and ' + player2.username + ' are ready to start a battle.')
+                                new_game = Game(player1, player2)
+                                Game_queue.append(new_game)
             finally:
                 lock.release()
                 time.sleep(2)
+
+
+
 
 
 def elo_calculater(elo_a, elo_b, winner, k=32):
@@ -140,11 +142,11 @@ def join_new_player(player):
     lock.acquire()
     try:
         print(f"Joining {player.username}")
-        player_list[player.subject].append(player)
-        for subject, players in player_list.items():
-            # 排序
-            players.sort(key=lambda exist: exist.elo if exist.elo is not None else float('-inf'), reverse=True)
-
+        if player not in player_list[player.subject]:
+            player_list[player.subject].append(player)
+            for subject, players in player_list.items():
+                # 排序
+                players.sort(key=lambda exist: exist.elo if exist.elo is not None else float('-inf'), reverse=True)
     finally:
         lock.release()
 
@@ -164,21 +166,10 @@ def remove_player_by_sid(sid):
                 remove_player(player)
 
 
-def secondary_match_func():
-    for subject in player_list.keys():
-        index = 0
-        while index + 1 < len(player_list[subject]):
-            player1 = player_list[subject][index]
-            player2 = player_list[subject][index + 1]
-            player_list[subject].remove(player1)
-            player_list[subject].remove(player2)
-            from main import matcher, observer
-            matcher.notify_observers(player1, player2)
 
 
-def start_timer(timeout):
-    timer = threading.Timer(timeout, secondary_match_func)
-    timer.start()
+
+
 
 
 if __name__ == '__main__':

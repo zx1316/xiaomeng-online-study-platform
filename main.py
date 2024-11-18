@@ -10,13 +10,13 @@ from flask import Flask, redirect, request, url_for, jsonify, send_from_director
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from jsonschema import validate
 from sqlalchemy.sql import func
-from flask_socketio import SocketIO, emit, join_room, leave_room, disconnect, rooms
+from flask_socketio import SocketIO, emit, disconnect
 from werkzeug.exceptions import NotFound
 
 import Elo_match
 from db_models import *
 from image_process import process_images_and_text
-from Elo_match import Player, Game, Game_dict, search_player
+from Elo_match import Player, Game, Game_dict, player_list, lock, base_step, my_room_lock, lock2
 
 IMAGE_SAVE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/img/q')
 os.makedirs(IMAGE_SAVE_PATH, exist_ok=True)
@@ -611,7 +611,7 @@ def rank_info():
     return jsonify(response_data), 200
 
 
-class my_room:
+class My_room:
     def __init__(self):
         self.dict1 = {}
         self.dict2 = {}
@@ -621,6 +621,7 @@ class my_room:
         self.dict2[sid2] = room_id
 
     def remove_players(self, sid1, sid2):
+        print('remove_players')
         if self.dict1.get(sid1):
             self.dict1.pop(sid1)
             self.dict2.pop(sid2)
@@ -629,13 +630,15 @@ class my_room:
             self.dict1.pop(sid1)
 
     def get_room(self, sid):
+        print('sid=' + sid)
         if self.dict1.get(sid):
             return self.dict1[sid]
-        else:
+        elif self.dict2.get(sid):
             return self.dict2[sid]
+        else:
+            return None
 
-
-my_room = my_room()
+my_room = My_room()
 
 
 def authenticated_only(f):
@@ -650,42 +653,6 @@ def authenticated_only(f):
     return wrapped
 
 
-# 当匹配成功时通知服务器发送报文
-class Matcher:
-    def __init__(self):
-        self._observers = []
-
-    def add_observer(self, observer):
-        if observer not in self._observers:
-            self._observers.append(observer)
-
-    def remove_observer(self, observer):
-        self._observers.remove(observer)
-
-    def notify_observers(self, *args, **kwargs):
-        for observer in self._observers:
-            observer.update(*args, **kwargs)
-
-
-class Observer:
-    def update(self, *args, **kwargs):
-        # 待写
-        player1 = args[0]
-        player2 = args[1]
-        print(player1.username + ' and ' + player2.username + ' are ready to start a battle.')
-        print(player1.sid, player1.subject, player2.sid, player2.subject)
-        new_game = Game(player1, player2)
-        new_room_id = f'{player1.sid}_{player2.sid}_{uuid.uuid4()}'
-        my_room.join_players(player1.sid, player2.sid, new_room_id)
-        Game_dict[new_room_id] = new_game
-        send_match_ok(new_room_id)
-
-
-matcher = Matcher()
-observer = Observer()
-matcher.add_observer(observer)
-
-
 @socketio.on('connect')
 def handle_connect():
     print('Fuck you')
@@ -698,7 +665,7 @@ def handle_match_request(data):
     print(player.username + ' want ' + player.subject + ' whose sid is ' + player.sid)
     # 匹配相关
     Elo_match.join_new_player(player)
-
+    socketio.start_background_task(target=zxx_matcher)
 
 
 @socketio.on('end')
@@ -838,75 +805,84 @@ def handle_disconnect():
     # 得区分事件
 
     # 处理浏览器主动断开连接
-
     game = Game_dict[room_id]
-    # player1 是断开连接的
-    if Game_dict[room_id].player1.sid == sid:
-        player = Game_dict[room_id].player1
-        opponent = Game_dict[room_id].player2
+    # player 是断开连接的
+    if game.player1.sid == sid:
+        player = game.player1
+        opponent = game.player2
     else:
-        player = Game_dict[room_id].player2
-        opponent = Game_dict[room_id].player1
-
+        player = game.player2
+        opponent = game.player1
+    print(player.username)
+    print(opponent.username)
     if player.total < question_nums:
         # 直接判负
-        model = get_model(game.player1.subject)
-        player1_status = model.query.filter_by(Uid=game.player1.uid).first()
-        player2_status = model.query.filter_by(Uid=game.player2.uid).first()
-        player1_status.Total += game.player1.total
-        player1_status.Right += game.player1.right
-        player2_status.Total += game.player2.total
-        player2_status.Right += game.player2.right
-        if player.sid == game.player1.sid:
-            winner = 1
-        else:
-            winner = 0
-        elo_delta_a, elo_delta_b = Elo_match.elo_calculater(game.player1.elo, game.player2.elo, winner)
-        print(elo_delta_a, elo_delta_b)
-        player1_status.Elo = game.player1.elo + elo_delta_a
-        player2_status.Elo = game.player2.elo + elo_delta_b
+        model = get_model(player.subject)
+        player_status = model.query.filter_by(Uid=player.uid).first()
+        opponent_status = model.query.filter_by(Uid=opponent.uid).first()
+        player_status.Total += player.total
+        player_status.Right += player.right
+        opponent_status.Total += opponent.total
+        opponent_status.Right += opponent.right
+        elo_delta_a, elo_delta_b = Elo_match.elo_calculater(player.elo, opponent.elo, 1)
+        print(player.elo, opponent.elo)
+        print(player.username, elo_delta_a, opponent.username, elo_delta_b)
+        player_status.Elo = player.elo + elo_delta_a
+        opponent_status.Elo = opponent.elo + elo_delta_b
+        print(player_status.Elo, opponent_status.Elo)
         db.session.commit()
         # 发送结果
         emit('match_result', {
-            "self": elo_delta_a,
-            "opponent": elo_delta_b
-        }, to=game.player1.sid)
-        emit('match_result', {
-            "self": elo_delta_b,
-            "opponent": elo_delta_a
-        }, to=game.player2.sid)
-        disconnect(game.player1.sid)
-        disconnect(game.player2.sid)
+            "Self": elo_delta_b,
+            "Opponent": elo_delta_a
+        }, to=opponent.sid)
         # 事后清理
         if Game_dict.get(room_id):
             my_room.remove_players(game.player1.sid, game.player2.sid)
             Game_dict.pop(room_id)
+        print('disconnect end')
+        disconnect(opponent.sid)
 
 
-def send_match_ok(room_id):
-    print('send match ok to ' + room_id)
-    game = Game_dict[room_id]
-    print(game.questions[game.player1.total].Question)
-    socketio.emit('match_success', {
-        "Username": game.player2.username,
-        "Uid": game.player2.uid,
-        "Question": game.questions[game.player1.total].Question,
-        "SelectionA": game.questions[game.player1.total].SelectionA,
-        "SelectionB": game.questions[game.player1.total].SelectionB,
-        "SelectionC": game.questions[game.player1.total].SelectionC,
-        "SelectionD": game.questions[game.player1.total].SelectionD
-    }, to=game.player1.sid)
-    print('player1.sid = ' + game.player1.sid)
-    socketio.emit('match_success', {
-        "Username": game.player1.username,
-        "Uid": game.player1.uid,
-        "Question": game.questions[game.player2.total].Question,
-        "SelectionA": game.questions[game.player2.total].SelectionA,
-        "SelectionB": game.questions[game.player2.total].SelectionB,
-        "SelectionC": game.questions[game.player2.total].SelectionC,
-        "SelectionD": game.questions[game.player2.total].SelectionD
-    }, to=game.player2.sid)
-    print('player2.sid = ' + game.player2.sid)
+def zxx_matcher():
+    from Elo_match import Game_queue
+    while len(Game_queue) == 0:
+        socketio.sleep(1)
+    print('zxx is working')
+    while len(Game_queue) > 0:
+        game = Game_queue.pop()
+        # 在这里注册room
+        new_room_id = f'{game.player1.sid}_{game.player2.sid}_{uuid.uuid4()}'
+        my_room.join_players(game.player1.sid, game.player2.sid, new_room_id)
+        Game_dict[new_room_id] = game
+        print('send match ok to ' + game.player1.username + " and " + game.player2.username)
+        socketio.emit('match_success', {
+            "Username": game.player2.username,
+            "Uid": game.player2.uid,
+            "Question": game.questions[game.player1.total].Question,
+            "SelectionA": game.questions[game.player1.total].SelectionA,
+            "SelectionB": game.questions[game.player1.total].SelectionB,
+            "SelectionC": game.questions[game.player1.total].SelectionC,
+            "SelectionD": game.questions[game.player1.total].SelectionD
+        }, to=game.player1.sid)
+        print(game.player2.username, game.player2.uid, game.questions[game.player1.total].Question
+              , game.questions[game.player1.total].SelectionA,
+              game.questions[game.player1.total].SelectionB,
+              game.questions[game.player1.total].SelectionC,
+              game.questions[game.player1.total].SelectionD,
+              game.player1.sid)
+        print('player1.sid = ' + game.player1.sid)
+        socketio.emit('match_success', {
+            "Username": game.player1.username,
+            "Uid": game.player1.uid,
+            "Question": game.questions[game.player2.total].Question,
+            "SelectionA": game.questions[game.player2.total].SelectionA,
+            "SelectionB": game.questions[game.player2.total].SelectionB,
+            "SelectionC": game.questions[game.player2.total].SelectionC,
+            "SelectionD": game.questions[game.player2.total].SelectionD
+        }, to=game.player2.sid)
+        print('player2.sid = ' + game.player2.sid)
+    print('zxx finished')
 
 
 # static res
@@ -1017,7 +993,6 @@ def index():
 
 if __name__ == '__main__':
     initialize_database()
-    zxx_thread = threading.Thread(target=Elo_match.zxx_matcher)
-    zxx_thread.start()
+    thread = threading.Thread(target=Elo_match.zxx_worker)
+    thread.start()
     socketio.run(app, host='0.0.0.0', debug=True)
-
