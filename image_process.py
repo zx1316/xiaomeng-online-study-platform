@@ -15,7 +15,23 @@ def extract_image_hashes(text):
     return set(re.findall(r'%%%([^@]+)@@@', text))
 
 
-def save_image(base64_str, _type="question"):
+def resize_image(image_data):
+    try:
+        image = Image.open(BytesIO(image_data))
+        max_dimension = max(image.size)
+        if max_dimension > 128:
+            scale_ratio = 128 / max_dimension
+            new_size = (int(image.size[0] * scale_ratio), int(image.size[1] * scale_ratio))
+            image = image.resize(new_size, Image.ANTIALIAS)
+            output = BytesIO()
+            image.save(output, format="PNG")
+            return output.getvalue(), None
+        return image_data, None
+    except Exception as e:
+        return None, f"Failed to process image: {str(e)}"
+
+
+def save_image(base64_str):
     try:
         image_data = base64.b64decode(base64_str)
     except base64.binascii.Error:
@@ -23,27 +39,9 @@ def save_image(base64_str, _type="question"):
     # Verify
     if image_data[:8] != b'\x89PNG\r\n\x1a\n':
         return None, "Image must be in PNG format"
-
-    if _type is not "question":
-        try:
-            image = Image.open(BytesIO(image_data))
-        except Exception as e:
-            return None, f"Cannot open.Invalid image data: {str(e)}"
-        max_dimension = max(image.size)
-        if max_dimension > 128:
-            scale_ratio = 128 / max_dimension
-            new_size = (int(image.size[0] * scale_ratio), int(image.size[1] * scale_ratio))
-            image = image.resize(new_size, Image.ANTIALIAS)
-            output = BytesIO()
-            image.save(output, format='PNG')
-            image_data = output.getvalue()
-
     md5_hash = hashlib.md5(image_data).hexdigest()
     file_name = f"{md5_hash}.png"
-    if _type is "question":
-        file_path = os.path.join(IMAGE_SAVE_PATH, file_name)
-    else:
-        file_path = os.path.join(AVATAR_SAVE_PATH, file_name)
+    file_path = os.path.join(IMAGE_SAVE_PATH, file_name)
     with open(file_path, 'wb') as f:
         f.write(image_data)
     return file_name, None

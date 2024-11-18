@@ -15,7 +15,7 @@ from werkzeug.exceptions import NotFound
 
 import Elo_match
 from db_models import *
-from image_process import process_images_and_text,save_image
+from image_process import process_images_and_text, resize_image, AVATAR_SAVE_PATH
 from Elo_match import Player, Game, Game_dict, player_list, lock, base_step, my_room_lock, lock2
 
 IMAGE_SAVE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/img/q')
@@ -894,19 +894,26 @@ def zxx_matcher():
 @app.route('/change_avatar', methods=['POST'])
 @login_required
 @student_required
-@validate_json({
-    "type": "object",
-    "properties": {
-        "Avatar": {"type": "bytes"}
-    },
-    "required": ["Avatar"]
-})
-def change_avatar(json_data):
-    avatar = json_data.get('Avatar')
-    image_filename, error = save_image(avatar, _type="avatar")
-    print("image_name:", image_filename)
+def change_avatar():
+    if 'Avatar' not in request.files:
+        return jsonify({"Msg": "Avatar field is required"}), 400
+
+    avatar = request.files['Avatar']
+    if avatar.mimetype != 'image/png':
+        return jsonify({"Msg": "Avatar must be in PNG format"}), 400
+    avatar_data = avatar.read()
+    resized_data, error = resize_image(avatar_data)
     if error:
         return jsonify({"Msg": error}), 400
+    user_id = current_user.Uid
+    file_name = f"{user_id}.png"
+    file_path = os.path.join(AVATAR_SAVE_PATH, file_name)
+    try:
+        with open(file_path, 'wb') as f:
+            f.write(resized_data)
+    except Exception as e:
+        return jsonify({"Msg": f"Failed to save avatar: {str(e)}"}), 400
+
     return '', 200
 
 
