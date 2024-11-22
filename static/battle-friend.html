@@ -1,14 +1,17 @@
 <!doctype html>
 <html lang="zh">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="utf-8">
-    <title>练习科目选择 · 小萌在线学习平台</title>
-    <link href="https://cdn.staticfile.net/twitter-bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.staticfile.net/font-awesome/4.7.0/css/font-awesome.css" rel="stylesheet">
-    <link href="css/list-groups.css" rel="stylesheet">
-    <link href="css/my-topfix-navbar.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>对战 · 小萌在线学习平台</title>
+    <link rel="stylesheet" href="https://cdn.staticfile.net/twitter-bootstrap/5.3.2/css/bootstrap.min.css">
     <link href="css/theme-switch.css" rel="stylesheet">
+    <link href="css/list-groups.css" rel="stylesheet">
+    <style>
+        .question-img {
+            max-width: 100%;
+        }
+    </style>
     <script src="js/color-modes.js"></script>
 </head>
 <body>
@@ -57,81 +60,28 @@
         </li>
     </ul>
 </div>
-<!--导航栏-->
-<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-    <div class="container">
-        <a class="navbar-brand" href="#">小萌在线学习平台</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarCollapse">
-            <ul class="navbar-nav me-auto mb-2 mb-md-0">
-                <li class="nav-item">
-                    <a class="nav-link active" href="#">练习</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="battle-select.html">对战</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="search-wrong.html">错题本</a>
-                </li>
-            </ul>
-            <div class="d-flex align-items-center">
-                <div class="dropdown">
-                    <a href="#" class="d-block link-body-emphasis text-decoration-none dropdown-toggle" id="user-dropdown-trigger" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img src="" width="32" height="32" class="rounded-circle" id="user-avatar">
-                    </a>
-                    <ul class="dropdown-menu text-small" id="user-dropdown-menu">
-                        <li><h6 class="dropdown-header" id="username"></h6></li>
-                        <li><h6 class="dropdown-header">UID：<span id="uid"></span></h6></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" id="user-center-link" href="profile.html">个人中心</a></li>
-                        <li><a class="dropdown-item" id="logout-link" href="#">登出</a></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-</nav>
-<div class="container d-flex flex-column align-items-center my-3">
-    <div class="list-group list-group-md" id="subject-list"></div>
-</div>
 
-<!--好友请求模态框-->
-<div class="modal fade" id="new-friend-modal" tabindex="-1">
+<div id="main-display" class="container py-3 d-flex flex-column gap-3 align-items-center"></div>
+
+<div class="modal fade" id="warning-modal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title">新朋友</h4>
-                <button type="button" class="btn-close" id="close-ok-btn" data-bs-dismiss="modal"></button>
+                <h4 class="modal-title">警告</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body" id="new-friend-modal-text"></div>
+            <div class="modal-body">
+                <span>若选择直接回顾，您将无法得知本场对战的胜负情况。</span>
+            </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">忽略</button>
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="confirm-add-friend-btn">同意</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">&ensp;再等等&ensp;</button>
+                <button type="button" class="btn btn-primary" id="continue-review-btn" data-bs-dismiss="modal">直接回顾</button>
             </div>
         </div>
     </div>
 </div>
-<!--好友对战请求模态框-->
-<div class="modal fade" id="friend-battle-request-modal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title">好友对战</h4>
-            </div>
-            <div class="modal-body" id="friend-battle-request-modal-text"></div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="reject-friend-battle-btn">拒绝</button>
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="accept-friend-battle-btn">接受</button>
-            </div>
-        </div>
-    </div>
-</div>
-<script src="js/socket.io.min.js"></script>
+<script src="https://cdn.staticfile.net/socket.io/4.7.4/socket.io.min.js"></script>
 <script src="js/bootstrap.bundle.min.js"></script>
-<script src="js/update-personal.js"></script>
-<script src="js/friend-push.js"></script>
-<script src="js/exercise-select.js"></script>
+<script src="js/battle-friend.js"></script>
 </body>
 </html>

@@ -214,6 +214,40 @@
         </div>
     </div>
 </div>
+<!--好友对战等待模态框-->
+<div class="modal fade" id="wait-friend-battle-modal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">好友对战</h4>
+                <button type="button" class="btn-close" id="close-ok-btn" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body d-flex flex-column gap-2 align-items-center">
+                <img id="waiting-img" src="img/matching.gif" width="128">
+                <span class="h5" id="waiting-text"></span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="wait-friend-battle-btn">取消对战请求</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--好友对战请求模态框-->
+<div class="modal fade" id="friend-battle-request-modal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">好友对战</h4>
+            </div>
+            <div class="modal-body" id="friend-battle-request-modal-text"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="reject-friend-battle-btn">拒绝</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="accept-friend-battle-btn">接受</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="js/socket.io.min.js"></script>
 <script src="js/bootstrap.bundle.min.js"></script>
 <script src="js/update-personal.js"></script>

@@ -1,11 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
     let exerciseListInner = '', battleListInner = '';
     let uploadFlag = false;
+    let friendBattleFlag = false;      // 用于判断关闭模态框时要不要发送终止对战
     let selectedSubject = '';   // 现在选中的科目
     let defaultSubject = '';    // 默认选中的科目
     let currentPage = 1, maxPage = 1;
     let friendObj;
     let toDeleteUid;
+    let waitingTimer;
 
     const selfUid = document.getElementById('self-uid');
     const selfName = document.getElementById('self-name');
@@ -22,6 +24,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const addFriendBtn = document.getElementById('add-friend-btn');
     const addFriendModalHeading = document.getElementById('add-friend-modal-heading');
     const addFriendModalText = document.getElementById('add-friend-modal-text');
+    const waitingImg = document.getElementById('waiting-img');
+    const waitingText = document.getElementById('waiting-text');
+    const waitFriendBattleBtn = document.getElementById('wait-friend-battle-btn');
 
     function getCookie(name) {
         const cookieArray = document.cookie.split(';'); // 分割cookie字符串
@@ -54,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <div class="dropdown">
                                     <div class="dropdown-toggle px-2 cursor-pointer" data-bs-toggle="dropdown"></div>
                                     <ul class="dropdown-menu">
-                                        <li class="dropdown-item cursor-pointer">发起该科目对战</li>
+                                        <li class="dropdown-item cursor-pointer friend-battle" data-uid="${friend.Uid}">发起该科目对战</li>
                                         <li class="dropdown-item cursor-pointer text-danger delete-friend" data-username="${friend.Username}" data-uid="${friend.Uid}">删除</li>
                                     </ul>
                                 </div>
@@ -77,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <div class="dropdown">
                                     <div class="dropdown-toggle px-2 cursor-pointer" data-bs-toggle="dropdown"></div>
                                     <ul class="dropdown-menu">
-                                        <li class="dropdown-item cursor-pointer">发起该科目对战</li>
+                                        <li class="dropdown-item cursor-pointer friend-battle" data-uid="${friend.Uid}">发起该科目对战</li>
                                         <li class="dropdown-item cursor-pointer text-danger delete-friend" data-username="${friend.Username}" data-uid="${friend.Uid}">删除</li>
                                     </ul>
                                 </div>
@@ -110,6 +115,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 toDeleteUid = el.getAttribute('data-uid');
                 deleteFriendModalText.innerText = `您确定要从好友列表中删除${el.getAttribute('data-username')}（UID：${el.getAttribute('data-uid')}）吗？`;
                 new bootstrap.Modal(document.getElementById('delete-friend-modal')).show();
+            });
+        });
+        // 设置发起对战事件监听
+        document.querySelectorAll('.friend-battle').forEach((el) => {
+            el.addEventListener('click', () => {
+                // 显示模态框
+                waitingText.innerText = '正在等待对方接受您的对战请求.';
+                waitingImg.src = 'img/matching.gif';
+                waitFriendBattleBtn.className = 'btn btn-secondary';
+                waitFriendBattleBtn.innerText = '取消对战';
+                waitingTimer = setInterval(() => {
+                    if (waitingText.innerText.substring(14) === '.') {
+                        waitingText.innerText = '正在等待对方接受您的对战请求..';
+                    } else if (waitingText.innerText.substring(14) === '..') {
+                        waitingText.innerText = '正在等待对方接受您的对战请求...';
+                    } else {
+                        waitingText.innerText = '正在等待对方接受您的对战请求.';
+                    }
+                }, 500);
+                friendBattleFlag = true;
+                new bootstrap.Modal(document.getElementById('wait-friend-battle-modal')).show();
+                // 发送请求
+                socket.emit('friend_battle_request', {Uid: el.getAttribute('data-uid'), Subject: selectedSubject});
             });
         });
     }
@@ -405,6 +433,43 @@ document.addEventListener('DOMContentLoaded', () => {
             addFriendModalHeading.innerText = '错误';
             addFriendModalText.innerText = '输入的不是UID！';
             new bootstrap.Modal(document.getElementById('add-friend-modal')).show();
+        }
+    });
+
+    // 关闭匹配框时
+    document.getElementById('wait-friend-battle-modal').addEventListener('hide.bs.modal', () => {
+        if (friendBattleFlag) {
+            // 如果正在等待对方接受
+            socket.emit('end_friend_battle_request');   // 发送终止对战
+            clearInterval(friendBattleFlag);
+            friendBattleFlag = false;
+        }
+    });
+
+    // 收到对战请求许可
+    socket.on('friend_battle_permit', (data) => {
+        clearInterval(friendBattleFlag);
+        friendBattleFlag = false;
+        if (data.Answer === 'yes') {
+            // 可以对战，开新窗口吧
+            new bootstrap.Modal(document.getElementById('add-friend-modal')).hide();
+            window.open('battle-friend.html', '_blank');
+        } else {
+            // 对战个勾八
+            waitingImg.src = 'img/lose.gif';
+            waitFriendBattleBtn.className = 'btn btn-primary';
+            waitFriendBattleBtn.innerText = '关闭';
+            if (data.Answer === 'offline') {
+                waitingText.innerText = '对方不在线！';
+            } else if (data.Answer === 'opponent_already_in_battle') {
+                waitingText.innerText = '对方已经开始了一场对战！';
+            } else if (data.Answer === 'already_in_battle') {
+                waitingText.innerText = '您已经在一场对战中了！';
+            } else if (data.Answer === 'not_friend') {
+                waitingText.innerText = '对方不是您的好友！';
+            } else {
+                waitingText.innerText = '对方拒绝了您的请求！';
+            }
         }
     });
 });
