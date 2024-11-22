@@ -1,8 +1,6 @@
 let searchResult = [];
 const re = /%%%.+?@@@/g;
 
-const userDropdownTrigger = document.getElementById('user-dropdown-trigger');
-const userDropdownMenu = document.getElementById('user-dropdown-menu');
 const keywordInput = document.getElementById('keyword-input');
 const subjectSelect = document.getElementById('subject-select');
 const searchBtn = document.getElementById('search-btn');
@@ -11,25 +9,6 @@ const resultP = document.getElementById('result-p');
 const resultList = document.getElementById('result-list');
 const form = document.getElementById('search-form');
 const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
-
-const username = document.getElementById('username');
-const uid = document.getElementById('uid');
-const userAvatar = document.getElementById('user-avatar');
-const logoutLink = document.getElementById('logout-link');
-
-function getCookie(name) {
-    const cookieArray = document.cookie.split(';'); // 分割cookie字符串
-    // 遍历cookie数组
-    for (let i = 0; i < cookieArray.length; i++) {
-        const cookiePair = cookieArray[i].trim();   // 获取每个cookie的名称和值
-        const cookieNameValuePair = cookiePair.split('=');  // 分割名称和值
-        // 检查cookie名称是否匹配
-        if (cookieNameValuePair[0] === name) {
-            return decodeURIComponent(cookieNameValuePair[1]);
-        }
-    }
-    return null;
-}
 
 function createPageItem(str) {
     let li = document.createElement('li');
@@ -259,34 +238,6 @@ form.onsubmit = function(event) {
         .then(response => response.json())
         .then(result => setUI(result));
 }
-
-// 用户头像下拉位移
-userDropdownTrigger.addEventListener('shown.bs.dropdown', () => {
-    const rect = userDropdownMenu.getBoundingClientRect();
-    if (rect.x + rect.width > window.innerWidth) {
-        userDropdownMenu.style.transform = `translateX(${window.innerWidth - rect.x - rect.width}px)`;
-    }
-});
-userDropdownTrigger.addEventListener('hidden.bs.dropdown', () => {
-    userDropdownMenu.style.transform = 'none';
-});
-
-// 登出
-logoutLink.addEventListener('click', (e) => {
-    sessionStorage.clear();
-    fetch('/logout', {method: 'POST'})
-        .then(response => response.text())
-        .then(result => {
-            window.location.href = '/signin.html';
-        })
-        .catch(error => {
-            window.location.href = '/signin.html';
-        })
-});
-
-username.innerText = getCookie('username');
-uid.innerText = getCookie('uid');
-userAvatar.src = `img/user/${uid.innerText}.png`;
 
 // 如果没有会话存储，设置默认值
 if (sessionStorage.getItem('currentPage') === null) {

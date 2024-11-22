@@ -569,11 +569,6 @@ def get_rank_info_for_subject(subject, status_model, current_user_id):
     self_elo = int(0)
     ranks = []
     for idx, (status, username) in enumerate(subject_data):
-        if status.Uid == current_user_id:
-            self_rank = idx + 1
-            self_total = status.Total
-            self_right = status.Right
-            self_elo = status.Elo
         ranks.append({
             "Uid": status.Uid,
             "Username": username,
@@ -581,6 +576,17 @@ def get_rank_info_for_subject(subject, status_model, current_user_id):
             "Right": status.Right,
             "Elo": status.Elo
         })
+        # 只发前十名
+        if idx == 9:
+            break
+
+    for idx, (status, username) in enumerate(subject_data):
+        if status.Uid == current_user_id:
+            self_rank = idx + 1
+            self_total = status.Total
+            self_right = status.Right
+            self_elo = status.Elo
+            break
 
     return {
         "Subject": subject,
@@ -972,7 +978,7 @@ def handle_friend_connect():
     online_users.join_user(uid, sid)
 
 
-@app.route('add_friend', methods=['POST'])
+@app.route('/add_friend', methods=['POST'])
 @login_required
 @student_required
 def add_friend():
@@ -995,7 +1001,7 @@ def add_friend():
         return 200
 
 
-@app.route('delete_friend', methods=['POST'])
+@app.route('/delete_friend', methods=['POST'])
 @login_required
 @student_required
 def delete_friend():
@@ -1013,7 +1019,7 @@ def delete_friend():
         return 200
 
 
-@app.route('friend_list', methods=['POST'])
+@app.route('/friend_list', methods=['POST'])
 @login_required
 @student_required
 def friend_list():
@@ -1026,27 +1032,44 @@ def friend_list():
             Friend.Uid1 == user_id,
             Friend.Uid2 == user_id
         )
-    ).all()
+    ).paginate(page=page, per_page=size)
 
     # 创建一个空列表来存储朋友信息
     friends_list = []
+    subjects = ['数学Ⅰ', '数学Ⅱ', '政治', '计算机学科专业基础综合']
+    status_models = {
+        '数学Ⅰ': Math1LearningStatus,
+        '数学Ⅱ': Math2LearningStatus,
+        '政治': PolLearningStatus,
+        '计算机学科专业基础综合': CS408LearningStatus
+    }
 
     # 遍历朋友关系并获取朋友信息
-    for relation in friends_relations:
+    for relation in friends_relations.items:
         # 确定朋友是Uid1还是Uid2
         friend_uid = relation.Uid2 if relation.Uid1 == user_id else relation.Uid1
         friend_user = User.query.get(friend_uid)
+        elo_obj = {}
+        rank_obj = {}
+        for subject in subjects:
+            # 对每个科目获取段位信息
+            status_model = status_models[subject]
+            subject_data = get_rank_info_for_subject(subject, status_model, friend_uid)
+            elo_obj[subject] = subject_data['Elo']
+            rank_obj[subject] = subject_data['SelfRank']
 
         # 添加朋友信息到列表
         friends_list.append({
-            "Username": friend_user.username,
-            "Uid": friend_uid
+            "Username": friend_user.Username,
+            "Uid": friend_uid,
+            "Elo": elo_obj,
+            "Rank": rank_obj
         })
 
     # 构造并返回最终的JSON响应
     response = {
-        "total": len(friends_list),
-        "friends": friends_list
+        "Total": friends_relations.total,
+        "Friends": friends_list
     }
     return jsonify(response)
 

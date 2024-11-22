@@ -1,11 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const username = document.getElementById('username');
-    const uid = document.getElementById('uid');
-    const userAvatar = document.getElementById('user-avatar');
-    const logoutLink = document.getElementById('logout-link');
-    const userDropdownTrigger = document.getElementById('user-dropdown-trigger');
-    const userDropdownMenu = document.getElementById('user-dropdown-menu');
-
     const subjectNavTab = document.getElementById('subject-nav-tab');
     const navTabContent = document.getElementById('nav-tab-content');
 
@@ -22,34 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return null;
     }
-
-    // 用户下拉栏位置偏移
-    userDropdownTrigger.addEventListener('shown.bs.dropdown', () => {
-        const rect = userDropdownMenu.getBoundingClientRect()
-        if (rect.x + rect.width > window.innerWidth) {
-            userDropdownMenu.style.transform = `translateX(${window.innerWidth - rect.x - rect.width}px)`
-        }
-    });
-    userDropdownTrigger.addEventListener('hidden.bs.dropdown', () => {
-        userDropdownMenu.style.transform = 'none'
-    });
-
-    // 登出
-    logoutLink.addEventListener('click', (e) => {
-        sessionStorage.clear();
-        fetch('/logout', {method: 'POST'})
-            .then(response => response.text())
-            .then(result => {
-                window.location.href = '/signin.html'
-            })
-            .catch(error => {
-                window.location.href = '/signin.html'
-            })
-    });
-
-    username.innerText = getCookie('username');
-    uid.innerText = getCookie('uid');
-    userAvatar.src = `img/user/${uid.innerText}.png`;
 
     // 对战科目信息的逻辑
     fetch('rank_info')
@@ -153,8 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             <th scope="row" class="text-center">${element.SelfRank > 9999 ? '9999+' : element.SelfRank}</th>
                             <td class="w-100">
                                 <div class="d-flex align-items-center gap-2">
-                                    <img src="img/user/${uid.innerText}.png" width="32" height="32" class="rounded-circle">
-                                    <span>${username.innerText}</span>
+                                    <img src="img/user/${getCookie('uid')}.png" width="32" height="32" class="rounded-circle">
+                                    <span>${getCookie('username')}</span>
                                 </div>
                             </td>
                             <td class="text-end">${Math.round(element.Elo)}</td>

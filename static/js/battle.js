@@ -255,10 +255,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 500);
 
-    const socket = io('/');
+    const socket = io('/battle');
 
     socket.on('connect', () => {
         socket.emit('start', {Subject: new URLSearchParams(window.location.search).get('subject')});
+    });
+
+    // 已经开匹配了，不能同时进行两场对战
+    socket.on('match_fail', () => {
+        // todo
     });
 
     // 服务器匹配成功

@@ -7,6 +7,7 @@
     <link href="https://cdn.staticfile.net/twitter-bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/my-topfix-navbar.css" rel="stylesheet">
     <link href="css/theme-switch.css" rel="stylesheet">
+    <link href="css/list-group-radio.css" rel="stylesheet">
     <style>
         .very-small {
             font-size: 0.75em;
@@ -126,10 +127,10 @@
                 <span class="h4 ms-2 mb-0">学习情况</span>
                 <div class="form-check form-switch me-3 mb-0">
                     <input class="form-check-input" type="checkbox" role="switch" id="battle-switch">
-                    <label class="form-check-label" for="battle-switch">对战</label>
+                    <label class="form-check-label" for="battle-switch">显示对战</label>
                 </div>
             </div>
-            <ul class="list-group mb-3" id="subject-list"></ul>
+            <div class="mb-3 list-group list-group-radio d-grid gap-2 border-0" id="subject-list"></div>
         </div>
         <div class="flex-grow-1">
             <div class="mb-3">
@@ -142,191 +143,10 @@
                 </div>
                 <button class="btn btn-outline-primary">添加</button>
             </div>
-            <ul class="list-group m-0 mb-3">
-                <li class="list-group-item list-group-item-action pe-2">
-                    <div class="d-flex gap-2 align-items-center">
-                        <img src="img/user/default-avatar.png" alt="" width="40" height="40" class="rounded-circle">
-                        <div class="d-flex flex-grow-1 justify-content-between align-items-center">
-                            <div class="d-flex flex-column">
-                                <span>测试好友001</span>
-                                <span class="very-small opacity-75">UID：1919810</span>
-                            </div>
-                            <div class="dropdown">
-                                <div class="dropdown-toggle px-2 cursor-pointer" data-bs-toggle="dropdown"></div>
-                                <ul class="dropdown-menu">
-                                    <li class="dropdown-item cursor-pointer">发起对战</li>
-                                    <li class="dropdown-item cursor-pointer text-danger">删除</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </li>
-                <li class="list-group-item list-group-item-action pe-2">
-                    <div class="d-flex gap-2 align-items-center">
-                        <img src="img/user/default-avatar.png" alt="" width="40" height="40" class="rounded-circle">
-                        <div class="d-flex flex-grow-1 justify-content-between align-items-center">
-                            <div class="d-flex flex-column">
-                                <span>测试好友002</span>
-                                <span class="very-small opacity-75">UID：1919810</span>
-                            </div>
-                            <div class="dropdown">
-                                <div class="dropdown-toggle px-2 cursor-pointer" data-bs-toggle="dropdown"></div>
-                                <ul class="dropdown-menu">
-                                    <li class="dropdown-item cursor-pointer">发起对战</li>
-                                    <li class="dropdown-item cursor-pointer text-danger">删除</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </li>
-                <li class="list-group-item list-group-item-action pe-2">
-                    <div class="d-flex gap-2 align-items-center">
-                        <img src="img/user/default-avatar.png" alt="" width="40" height="40" class="rounded-circle">
-                        <div class="d-flex flex-grow-1 justify-content-between align-items-center">
-                            <div class="d-flex flex-column">
-                                <span>测试好友003</span>
-                                <span class="very-small opacity-75">UID：1919810</span>
-                            </div>
-                            <div class="dropdown">
-                                <div class="dropdown-toggle px-2 cursor-pointer" data-bs-toggle="dropdown"></div>
-                                <ul class="dropdown-menu">
-                                    <li class="dropdown-item cursor-pointer">发起对战</li>
-                                    <li class="dropdown-item cursor-pointer text-danger">删除</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </li>
-                <li class="list-group-item list-group-item-action pe-2">
-                    <div class="d-flex gap-2 align-items-center">
-                        <img src="img/user/default-avatar.png" alt="" width="40" height="40" class="rounded-circle">
-                        <div class="d-flex flex-grow-1 justify-content-between align-items-center">
-                            <div class="d-flex flex-column">
-                                <span>测试好友004</span>
-                                <span class="very-small opacity-75">UID：1919810</span>
-                            </div>
-                            <div class="dropdown">
-                                <div class="dropdown-toggle px-2 cursor-pointer" data-bs-toggle="dropdown"></div>
-                                <ul class="dropdown-menu">
-                                    <li class="dropdown-item cursor-pointer">发起对战</li>
-                                    <li class="dropdown-item cursor-pointer text-danger">删除</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </li>
-                <li class="list-group-item list-group-item-action pe-2">
-                    <div class="d-flex gap-2 align-items-center">
-                        <img src="img/user/default-avatar.png" alt="" width="40" height="40" class="rounded-circle">
-                        <div class="d-flex flex-grow-1 justify-content-between align-items-center">
-                            <div class="d-flex flex-column">
-                                <span>测试好友005</span>
-                                <span class="very-small opacity-75">UID：1919810</span>
-                            </div>
-                            <div class="dropdown">
-                                <div class="dropdown-toggle px-2 cursor-pointer" data-bs-toggle="dropdown"></div>
-                                <ul class="dropdown-menu">
-                                    <li class="dropdown-item cursor-pointer">发起对战</li>
-                                    <li class="dropdown-item cursor-pointer text-danger">删除</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </li>
-                <li class="list-group-item list-group-item-action pe-2">
-                    <div class="d-flex gap-2 align-items-center">
-                        <img src="img/user/default-avatar.png" alt="" width="40" height="40" class="rounded-circle">
-                        <div class="d-flex flex-grow-1 justify-content-between align-items-center">
-                            <div class="d-flex flex-column">
-                                <span>测试好友006</span>
-                                <span class="very-small opacity-75">UID：1919810</span>
-                            </div>
-                            <div class="dropdown">
-                                <div class="dropdown-toggle px-2 cursor-pointer" data-bs-toggle="dropdown"></div>
-                                <ul class="dropdown-menu">
-                                    <li class="dropdown-item cursor-pointer">发起对战</li>
-                                    <li class="dropdown-item cursor-pointer text-danger">删除</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </li>
-                <li class="list-group-item list-group-item-action pe-2">
-                    <div class="d-flex gap-2 align-items-center">
-                        <img src="img/user/default-avatar.png" alt="" width="40" height="40" class="rounded-circle">
-                        <div class="d-flex flex-grow-1 justify-content-between align-items-center">
-                            <div class="d-flex flex-column">
-                                <span>测试好友007</span>
-                                <span class="very-small opacity-75">UID：1919810</span>
-                            </div>
-                            <div class="dropdown">
-                                <div class="dropdown-toggle px-2 cursor-pointer" data-bs-toggle="dropdown"></div>
-                                <ul class="dropdown-menu">
-                                    <li class="dropdown-item cursor-pointer">发起对战</li>
-                                    <li class="dropdown-item cursor-pointer text-danger">删除</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </li>
-                <li class="list-group-item list-group-item-action pe-2">
-                    <div class="d-flex gap-2 align-items-center">
-                        <img src="img/user/default-avatar.png" alt="" width="40" height="40" class="rounded-circle">
-                        <div class="d-flex flex-grow-1 justify-content-between align-items-center">
-                            <div class="d-flex flex-column">
-                                <span>测试好友008</span>
-                                <span class="very-small opacity-75">UID：1919810</span>
-                            </div>
-                            <div class="dropdown">
-                                <div class="dropdown-toggle px-2 cursor-pointer" data-bs-toggle="dropdown"></div>
-                                <ul class="dropdown-menu">
-                                    <li class="dropdown-item cursor-pointer">发起对战</li>
-                                    <li class="dropdown-item cursor-pointer text-danger">删除</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </li>
-                <li class="list-group-item list-group-item-action pe-2">
-                    <div class="d-flex gap-2 align-items-center">
-                        <img src="img/user/default-avatar.png" alt="" width="40" height="40" class="rounded-circle">
-                        <div class="d-flex flex-grow-1 justify-content-between align-items-center">
-                            <div class="d-flex flex-column">
-                                <span>测试好友009</span>
-                                <span class="very-small opacity-75">UID：1919810</span>
-                            </div>
-                            <div class="dropdown">
-                                <div class="dropdown-toggle px-2 cursor-pointer" data-bs-toggle="dropdown"></div>
-                                <ul class="dropdown-menu">
-                                    <li class="dropdown-item cursor-pointer">发起对战</li>
-                                    <li class="dropdown-item cursor-pointer text-danger">删除</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </li>
-                <li class="list-group-item list-group-item-action pe-2">
-                    <div class="d-flex gap-2 align-items-center">
-                        <img src="img/user/default-avatar.png" alt="" width="40" height="40" class="rounded-circle">
-                        <div class="d-flex flex-grow-1 justify-content-between align-items-center">
-                            <div class="d-flex flex-column">
-                                <span>测试好友010</span>
-                                <span class="very-small opacity-75">UID：1919810</span>
-                            </div>
-                            <div class="dropdown">
-                                <div class="dropdown-toggle px-2 cursor-pointer" data-bs-toggle="dropdown"></div>
-                                <ul class="dropdown-menu">
-                                    <li class="dropdown-item cursor-pointer">发起对战</li>
-                                    <li class="dropdown-item cursor-pointer text-danger">删除</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </li>
-            </ul>
+            <ul class="list-group m-0 mb-3" id="friend-list"></ul>
             <div class="mb-3 d-flex justify-content-center align-items-center">
                 <button class="btn btn-sm btn-outline-primary" id="prev-btn">&lt;</button>
-                <span id="review-question-count" class="mb-0 mx-4">1/10</span>
+                <span class="mb-0 mx-4" id="friend-page">1/10</span>
                 <button class="btn btn-sm btn-outline-primary" id="next-btn">&gt;</button>
             </div>
         </div>
@@ -347,7 +167,9 @@
         </div>
     </div>
 </div>
+<script src="https://cdn.staticfile.net/socket.io/4.7.4/socket.io.min.js"></script>
 <script src="js/bootstrap.bundle.min.js"></script>
+<script src="js/update-personal.js"></script>
 <script src="js/profile.js"></script>
 </body>
 </html>
