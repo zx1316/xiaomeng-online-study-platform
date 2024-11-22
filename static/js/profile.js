@@ -18,6 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const nextBtn = document.getElementById('next-btn');
     const deleteFriendModalText = document.getElementById('delete-friend-modal-text');
     const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+    const uidInput = document.getElementById('uid-input');
+    const addFriendBtn = document.getElementById('add-friend-btn');
+    const addFriendModalHeading = document.getElementById('add-friend-modal-heading');
+    const addFriendModalText = document.getElementById('add-friend-modal-text');
 
     function getCookie(name) {
         const cookieArray = document.cookie.split(';'); // 分割cookie字符串
@@ -312,8 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(data => {
                 // 处理上传成功后的逻辑
                 uploadFlag = false;
-                const okModal = new bootstrap.Modal(document.getElementById('avatar-ok-modal'));
-                okModal.show();
+                new bootstrap.Modal(document.getElementById('avatar-ok-modal')).show();
             })
             .catch(error => {
                 uploadFlag = false;
@@ -347,5 +350,54 @@ document.addEventListener('DOMContentLoaded', () => {
                         updateFriendsUI();
                     });
             });
+    });
+
+    // 添加好友
+    addFriendBtn.addEventListener('click', () => {
+        const num = Number(uidInput.value);
+        if (Number.isInteger(num) && num.toString() === uidInput.value) {
+            // 添加好友
+            fetch('/add_friend', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: `{"Uid":${num}}`
+            })
+                .then(response => {
+                    // 检查响应状态码
+                    if (response.status === 200) {
+                        // 状态码为200时，处理正常情况
+                        return response.text()  // 由于内容为空，这里使用text()方法
+                    } else if (response.status === 400) {
+                        // 状态码为400时，解析JSON错误信息
+                        return response.json().then(data => {
+                            throw new Error(data.Msg)
+                        });
+                    } else {
+                        // 其他状态码，抛出错误
+                        throw new Error('Unexpected status code: ' + response.status)
+                    }
+                })
+                .then(result => {
+                    addFriendModalHeading.innerText = '喜报';
+                    addFriendModalText.innerText = `已经发送申请，待对方同意后，你们将成为好友。`;
+                    new bootstrap.Modal(document.getElementById('add-friend-modal')).show();
+                })
+                .catch(error => {
+                    addFriendModalHeading.innerText = '错误';
+                    if (error.message === 'not_found') {
+                        addFriendModalText.innerText = '找不到这个用户！';
+                    } else if (error.message === 'offline') {
+                        addFriendModalText.innerText = '对方不在线，请等对方上线后再发送申请！';
+                    } else {
+                        addFriendModalText.innerText = error.message;
+                    }
+                    new bootstrap.Modal(document.getElementById('add-friend-modal')).show();
+                });
+        } else {
+            // 输入的不是整数
+            addFriendModalHeading.innerText = '错误';
+            addFriendModalText.innerText = '输入的不是UID！';
+            new bootstrap.Modal(document.getElementById('add-friend-modal')).show();
+        }
     });
 });

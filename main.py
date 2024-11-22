@@ -998,8 +998,8 @@ def add_friend():
         from_user = User.query.filter_by(Uid=current_user.Uid).first()
         emit('friend_request', {
             "Uid": from_user.Uid,
-            "Username": from_user.username
-        }, to=to_sid)
+            "Username": from_user.Username
+        }, to=to_sid, namespace='/friend')
         return Response(status=200)
 
 

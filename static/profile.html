@@ -141,7 +141,7 @@
                     <input type="text" class="form-control" id="uid-input" placeholder="">
                     <label for="uid-input">UID</label>
                 </div>
-                <button class="btn btn-outline-primary">添加</button>
+                <button class="btn btn-outline-primary" id="add-friend-btn">添加</button>
             </div>
             <ul class="list-group m-0 mb-3" id="friend-list"></ul>
             <div class="mb-3 d-flex justify-content-center align-items-center">
@@ -183,9 +183,41 @@
         </div>
     </div>
 </div>
-<script src="https://cdn.staticfile.net/socket.io/4.7.4/socket.io.min.js"></script>
+<!--好友请求模态框-->
+<div class="modal fade" id="new-friend-modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">新朋友</h4>
+                <button type="button" class="btn-close" id="close-ok-btn" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="new-friend-modal-text"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">忽略</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="confirm-add-friend-btn">同意</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--添加好友信息模态框-->
+<div class="modal fade" id="add-friend-modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="add-friend-modal-heading"></h4>
+                <button type="button" class="btn-close" id="close-ok-btn" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="add-friend-modal-text"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="confirm-add-friend-btn">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="js/socket.io.min.js"></script>
 <script src="js/bootstrap.bundle.min.js"></script>
 <script src="js/update-personal.js"></script>
+<script src="js/friend-push.js"></script>
 <script src="js/profile.js"></script>
 </body>
 </html>

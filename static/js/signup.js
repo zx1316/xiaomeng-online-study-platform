@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const passwordInput = document.getElementById("password-input");
     const confirmPasswordInput = document.getElementById("confirm-password-input");
     const submitBtn = document.querySelector("button[type='submit']");
-    const gotoSignInBtn = document.getElementById("goto-signin-btn");
     const signinLink = document.getElementById("signin-link");
 
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -77,6 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
     }
 
-    gotoSignInBtn.addEventListener("click", logoutAndJump);
+    // 关了模态框就得去登录
+    document.getElementById('success-modal').addEventListener('hide.bs.modal', logoutAndJump);
     signinLink.addEventListener("click", logoutAndJump);
 });
