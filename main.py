@@ -666,6 +666,7 @@ def handle_connect():
     # 终于有用了
     sid = request.sid
     uid = online_users.get_uid_by_sid(sid)
+
     for friend_battle in friend_battle_permitted:
         if (uid == friend_battle.player1_uid) and (not friend_battle.player1_connected):
             friend_battle.player1_sid = sid
@@ -674,6 +675,7 @@ def handle_connect():
             friend_battle.player2_sid = sid
             friend_battle.player2_connected = True
         if friend_battle.player1_connected and friend_battle.player2_connected:
+            print('friend battle is generating')
             player1 = Player(friend_battle.player1_uid, friend_battle.player1_sid, friend_battle.subject)
             player2 = Player(friend_battle.player2_uid, friend_battle.player2_sid, friend_battle.subject)
             game = Game(player1, player2)
@@ -708,6 +710,7 @@ def handle_connect():
                 "SelectionD": game.questions[game.player2.total].SelectionD
             }, to=game.player2.sid, namespace='/battle')
             print('player2.sid = ' + game.player2.sid)
+            friend_battle_permitted.remove(friend_battle)
 
 
 @socketio.on('start', namespace='/battle')
@@ -958,21 +961,25 @@ class Online_users:
         self.user_dict = {}
 
     def join_user(self, uid):
-        if uid not in self.user_dict:
-            self.user_dict[uid] = []
+        self.user_dict[uid] = []
 
     def join_sid(self, uid, sid):
         if uid not in self.user_dict:
-            self.user_dict[uid] = []
+            self.join_user(uid)
+        print('join', uid, sid)
         self.user_dict[uid].append(sid)
 
     def get_user_list(self, uid):
-        return self.user_dict[uid]
+        if self.user_dict.get(uid):
+            return self.user_dict[uid]
+        else:
+            return None
 
     def get_uid_by_sid(self, sid):
         for uid, sid_list in self.user_dict.items():
             if sid in sid_list:
                 return uid
+        return None
 
     def remove_sid(self, uid, sid):
         self.user_dict[uid].remove(sid)
@@ -1016,6 +1023,8 @@ def handle_friend_connect():
     sid = request.sid
     online_users.join_user(uid)
     online_users.join_sid(uid, sid)
+    for i in online_users.user_dict:
+        print(i, online_users.user_dict[i])
 
 
 @socketio.on('disconnect', namespace='/friend')
@@ -1195,23 +1204,24 @@ def handle_friend_battle_request(data):
         emit('friend_battle_permit', {
             "Answer": "not_friend"
         }, to=from_sid, namespace='/friend')
-    elif online_users.user_dict[to_uid] is None:
+    elif online_users.get_user_list(int(to_uid)) is None:
         # offline
         emit('friend_battle_permit', {
             "Answer": "offline"
         }, to=from_sid, namespace='/friend')
     else:
         friend_battle_request[from_uid] = subject
-        emit('friend_battle_request', {
-            "Uid": from_uid,
-            "Username": from_user.Username,
-            "Subject": subject
-        }, to=to_uid, namespace='/friend')
+        for to_sid in online_users.get_user_list(int(to_uid)):
+            emit('friend_battle_request', {
+                "Uid": from_uid,
+                "Username": from_user.Username,
+                "Subject": subject
+            }, to=to_sid, namespace='/friend')
 
 
 @socketio.on('end_friend_battle_request', namespace='/friend')
 @authenticated_only
-def handle_end_friend_battle_request(data):
+def handle_end_friend_battle_request():
     uid = current_user.Uid
     if friend_battle_request.get(uid) is not None:
         friend_battle_request.pop(uid)
@@ -1361,6 +1371,9 @@ def signup_page():
     return send_from_directory(app.config['STATIC_FOLDER'], 'signup.html')
 
 
+@app.route('/battle-friend.html')
+def battle_friend_page():
+    return send_from_directory(app.config['STATIC_FOLDER'], 'battle-friend.html')
 @app.route('/')
 def index():
     return redirect(url_for('login_page'))
