@@ -911,36 +911,29 @@ def zxx_matcher():
 # --- Friend Module  ---
 class Online_users:
     def __init__(self):
-        self.sid2uid_dict = {}
-        self.uid2sid_dict = {}
+        self.user_dict = {}
 
-    def join_user(self, uid, sid):
-        self.sid2uid_dict[sid] = uid
-        self.uid2sid_dict[uid] = sid
+    def join_user(self, uid):
+        if uid not in self.user_dict:
+            self.user_dict[uid] = []
+
+    def join_sid(self, uid, sid):
+        if uid not in self.user_dict:
+            self.user_dict[uid] = []
+        self.user_dict[uid].append(sid)
+
+    def get_user_list(self, uid):
+        return self.user_dict[uid]
 
     def get_uid_by_sid(self, sid):
-        return self.sid2uid_dict.get(sid)
+        for uid, sid_list in self.user_dict.items():
+            if sid in sid_list:
+                return uid
 
-    def get_sid_by_uid(self, uid):
-        return self.uid2sid_dict.get(uid)
-
-    def remove_user_by_uid(self, uid):
-        print('remove : ' + uid)
-        if self.uid2sid_dict.get(uid):
-            sid = self.uid2sid_dict[uid]
-            self.uid2sid_dict.pop(uid)
-            self.sid2uid_dict.pop(sid)
-        else:
-            print('no such user')
-
-    def remove_user_by_sid(self, sid):
-        print('remove : ' + sid)
-        if self.sid2uid_dict.get(sid):
-            uid = self.sid2uid_dict.get(sid)
-            self.sid2uid_dict.pop(sid)
-            self.uid2sid_dict.pop(uid)
-        else:
-            print('no such user')
+    def remove_sid(self, uid, sid):
+        self.user_dict[uid].remove(sid)
+        if len(self.user_dict[uid]) == 0:
+            self.user_dict.pop(uid)
 
 
 online_users = Online_users()
@@ -977,7 +970,16 @@ def change_avatar():
 def handle_friend_connect():
     uid = current_user.Uid
     sid = request.sid
-    online_users.join_user(uid, sid)
+    online_users.join_user(uid)
+    online_users.join_sid(uid, sid)
+
+
+@socketio.on('disconnect', namespace='/friend')
+@authenticated_only
+def handle_friend_disconnect():
+    uid = current_user.Uid
+    sid = request.sid
+    online_users.remove_sid(uid, sid)
 
 
 @app.route('/add_friend', methods=['POST'])
@@ -986,20 +988,22 @@ def handle_friend_connect():
 def add_friend():
     json_data = request.get_json()
     to_uid = json_data.get('Uid')
+    if to_uid == current_user.Uid:
+        return jsonify({"Msg": "add_yourself"}), 400
     # 检查Uid是否在
     user = User.query.filter_by(Uid=to_uid).first()
     if user is None:
         return jsonify({"Msg": "not_found"}), 400
-    elif online_users.uid2sid_dict.get(to_uid) is None:
+    elif online_users.user_dict[to_uid] is None:
         return jsonify({"Msg": "offline"}), 400
     else:
         # 可以理会
-        to_sid = online_users.get_sid_by_uid(to_uid)
         from_user = User.query.filter_by(Uid=current_user.Uid).first()
-        emit('friend_request', {
-            "Uid": from_user.Uid,
-            "Username": from_user.Username
-        }, to=to_sid, namespace='/friend')
+        for to_sid in online_users.get_user_list(to_uid):
+            emit('friend_request', {
+                "Uid": from_user.Uid,
+                "Username": from_user.Username
+            }, to=to_sid, namespace='/friend')
         return Response(status=200)
 
 
