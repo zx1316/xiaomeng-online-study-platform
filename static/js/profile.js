@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <div class="dropdown">
                                     <div class="dropdown-toggle px-2 cursor-pointer" data-bs-toggle="dropdown"></div>
                                     <ul class="dropdown-menu">
-                                        <li class="dropdown-item cursor-pointer">发起对战</li>
+                                        <li class="dropdown-item cursor-pointer">发起该科目对战</li>
                                         <li class="dropdown-item cursor-pointer text-danger delete-friend" data-username="${friend.Username}" data-uid="${friend.Uid}">删除</li>
                                     </ul>
                                 </div>
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <div class="dropdown">
                                     <div class="dropdown-toggle px-2 cursor-pointer" data-bs-toggle="dropdown"></div>
                                     <ul class="dropdown-menu">
-                                        <li class="dropdown-item cursor-pointer">发起对战</li>
+                                        <li class="dropdown-item cursor-pointer">发起该科目对战</li>
                                         <li class="dropdown-item cursor-pointer text-danger delete-friend" data-username="${friend.Username}" data-uid="${friend.Uid}">删除</li>
                                     </ul>
                                 </div>

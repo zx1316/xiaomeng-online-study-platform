@@ -265,8 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.on('match_fail', () => {
         mainDisplay.innerHTML = `
             <img src="img/lose.png" alt="fail" width="192">
-            <h2 class="pt-3">您已经在一场对战中了，无法开启新的对战</h2>
-            <span> </span>
+            <h2 class="pt-3">您已经在一场对战中了</h2>
         `;
     });
 
