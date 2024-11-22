@@ -674,7 +674,7 @@ def handle_match_request(data):
     # 匹配相关
     # 匹配前需要检查用户是否已经在对战中了，一个用户一次只能进行一个对战
     for room_id, exist in Game_dict.items():
-        if exist.Uid == player.uid:
+        if exist.uid == player.uid:
             # 该用户已经在一场对战中了
             emit('match_fail', {}, to=player.sid, namespace='/battle')
             disconnect(player.sid)
@@ -750,10 +750,10 @@ def handle_submit_answer(data):
             "SelectionB": game.questions[player.total].SelectionB,
             "SelectionC": game.questions[player.total].SelectionC,
             "SelectionD": game.questions[player.total].SelectionD
-        }, to=player.sid)
+        }, to=player.sid, namespace='/battle')
         emit('opponent', {
             "Correct": right
-        }, to=opponent.sid)
+        }, to=opponent.sid, namespace='/battle')
     else:
         emit('judge_result', {
             "Correct": right,
@@ -763,10 +763,10 @@ def handle_submit_answer(data):
             "SelectionB": None,
             "SelectionC": None,
             "SelectionD": None
-        }, to=player.sid)
+        }, to=player.sid, namespace='/battle')
         emit('opponent', {
             "Correct": right
-        }, to=opponent.sid)
+        }, to=opponent.sid, namespace='/battle')
 
     if player.total == question_nums and opponent.win == 0:
         player.win = 1
@@ -799,11 +799,11 @@ def handle_submit_answer(data):
         emit('match_result', {
             "Self": elo_delta_a,
             "Opponent": elo_delta_b
-        }, to=game.player1.sid)
+        }, to=game.player1.sid, namespace='/battle')
         emit('match_result', {
             "Self": elo_delta_b,
             "Opponent": elo_delta_a
-        }, to=game.player2.sid)
+        }, to=game.player2.sid, namespace='/battle')
         # 事后清理
         if Game_dict.get(room_id):
             my_room.remove_players(game.player1.sid, game.player2.sid)
@@ -856,7 +856,7 @@ def handle_disconnect():
         emit('match_result', {
             "Self": elo_delta_b,
             "Opponent": elo_delta_a
-        }, to=opponent.sid)
+        }, to=opponent.sid, namespace='/battle')
         # 事后清理
         if Game_dict.get(room_id):
             my_room.remove_players(game.player1.sid, game.player2.sid)
@@ -885,7 +885,7 @@ def zxx_matcher():
             "SelectionB": game.questions[game.player1.total].SelectionB,
             "SelectionC": game.questions[game.player1.total].SelectionC,
             "SelectionD": game.questions[game.player1.total].SelectionD
-        }, to=game.player1.sid)
+        }, to=game.player1.sid, namespace='/battle')
         print(game.player2.username, game.player2.uid, game.questions[game.player1.total].Question
               , game.questions[game.player1.total].SelectionA,
               game.questions[game.player1.total].SelectionB,
@@ -901,7 +901,7 @@ def zxx_matcher():
             "SelectionB": game.questions[game.player2.total].SelectionB,
             "SelectionC": game.questions[game.player2.total].SelectionC,
             "SelectionD": game.questions[game.player2.total].SelectionD
-        }, to=game.player2.sid)
+        }, to=game.player2.sid, namespace='/battle')
         print('player2.sid = ' + game.player2.sid)
     print('zxx finished')
 

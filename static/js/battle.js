@@ -263,7 +263,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 已经开匹配了，不能同时进行两场对战
     socket.on('match_fail', () => {
-        // todo
+        mainDisplay.innerHTML = `
+            <img src="img/lose.png" alt="fail" width="192">
+            <h2 class="pt-3">您已经在一场对战中了，无法开启新的对战</h2>
+            <span> </span>
+        `;
     });
 
     // 服务器匹配成功
