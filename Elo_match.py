@@ -146,7 +146,7 @@ def join_new_player(player):
             for old_player in player_list[subject]:
                 if old_player.uid == player.uid:
                     print('相同玩家')
-                    return
+                    return False
 
         player_list[player.subject].append(player)
         for subject, players in player_list.items():
@@ -154,6 +154,7 @@ def join_new_player(player):
             players.sort(key=lambda exist: exist.elo if exist.elo is not None else float('-inf'), reverse=True)
     finally:
         lock.release()
+        return True
 
 
 def remove_player(old_player):

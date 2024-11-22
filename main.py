@@ -679,8 +679,10 @@ def handle_match_request(data):
             emit('match_fail', {}, to=player.sid, namespace='/battle')
             disconnect(player.sid)
             return
-    Elo_match.join_new_player(player)
-    socketio.start_background_task(target=zxx_matcher)
+    if Elo_match.join_new_player(player):
+        socketio.start_background_task(target=zxx_matcher)
+    else:
+        emit('match_fail', {}, to=player.sid, namespace='/battle')
 
 
 @socketio.on('end')
