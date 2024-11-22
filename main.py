@@ -6,10 +6,10 @@ import json
 import os
 from functools import wraps
 
-from flask import Flask, redirect, request, url_for, jsonify, send_from_directory, abort, make_response
+from flask import Flask, redirect, request, url_for, jsonify, send_from_directory, abort, make_response, Response
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from jsonschema import validate
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 from sqlalchemy.sql import func
 from flask_socketio import SocketIO, emit, disconnect
 from werkzeug.exceptions import NotFound
@@ -998,7 +998,7 @@ def add_friend():
             "Uid": from_user.Uid,
             "Username": from_user.username
         }, to=to_sid)
-        return 200
+        return Response(status=200)
 
 
 @app.route('/delete_friend', methods=['POST'])
@@ -1008,15 +1008,18 @@ def delete_friend():
     json_data = request.get_json()
     to_uid = json_data.get('Uid')
     from_uid = current_user.Uid
-    friend = Friend.query.filter_by(
+    friend = Friend.query.filter(
         or_(
-            Friend.Uid1 == to_uid, Friend.Uid2 == from_uid,
-            Friend.Uid1 == from_uid, Friend.Uid2 == to_uid
+            and_(Friend.Uid1 == to_uid, Friend.Uid2 == from_uid),
+            and_(Friend.Uid1 == from_uid, Friend.Uid2 == to_uid)
         )).first()
+    print(friend)
+    db.session.delete(friend)
+    db.session.commit()
     if friend is None:
-        return 400
+        return Response(status=400)
     else:
-        return 200
+        return Response(status=200)
 
 
 @app.route('/friend_list', methods=['POST'])
