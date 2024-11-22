@@ -1,11 +1,11 @@
 const socket = io('/friend');
-let flag = false
+let newFriendFlag = false
 let pendingFriendUid;
 const newFriendModalText = document.getElementById('new-friend-modal-text');
 const confirmAddFriendBtn = document.getElementById('confirm-add-friend-btn');
 
 document.getElementById('new-friend-modal').addEventListener('hide.bs.modal', () => {
-    flag = false;
+    newFriendFlag = false;
     console.log('close');
 });
 
@@ -14,8 +14,8 @@ confirmAddFriendBtn.addEventListener('click', () => {
 });
 
 socket.on('friend_request', (data) => {
-    if (!flag) {
-        flag = true;
+    if (!newFriendFlag) {
+        newFriendFlag = true;
         pendingFriendUid = data.Uid;
         // 显示模态框
         newFriendModalText.innerText = `${data.Username}（UID：${data.Uid}）请求添加您为好友。`;

@@ -356,43 +356,50 @@ document.addEventListener('DOMContentLoaded', () => {
     addFriendBtn.addEventListener('click', () => {
         const num = Number(uidInput.value);
         if (Number.isInteger(num) && num.toString() === uidInput.value) {
-            // 添加好友
-            fetch('/add_friend', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: `{"Uid":${num}}`
-            })
-                .then(response => {
-                    // 检查响应状态码
-                    if (response.status === 200) {
-                        // 状态码为200时，处理正常情况
-                        return response.text()  // 由于内容为空，这里使用text()方法
-                    } else if (response.status === 400) {
-                        // 状态码为400时，解析JSON错误信息
-                        return response.json().then(data => {
-                            throw new Error(data.Msg)
-                        });
-                    } else {
-                        // 其他状态码，抛出错误
-                        throw new Error('Unexpected status code: ' + response.status)
-                    }
+            if (num !== Number(getCookie('uid'))) {
+                // 添加好友
+                fetch('/add_friend', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: `{"Uid":${num}}`
                 })
-                .then(result => {
-                    addFriendModalHeading.innerText = '喜报';
-                    addFriendModalText.innerText = `已经发送申请，待对方同意后，你们将成为好友。`;
-                    new bootstrap.Modal(document.getElementById('add-friend-modal')).show();
-                })
-                .catch(error => {
-                    addFriendModalHeading.innerText = '错误';
-                    if (error.message === 'not_found') {
-                        addFriendModalText.innerText = '找不到这个用户！';
-                    } else if (error.message === 'offline') {
-                        addFriendModalText.innerText = '对方不在线，请等对方上线后再发送申请！';
-                    } else {
-                        addFriendModalText.innerText = error.message;
-                    }
-                    new bootstrap.Modal(document.getElementById('add-friend-modal')).show();
-                });
+                    .then(response => {
+                        // 检查响应状态码
+                        if (response.status === 200) {
+                            // 状态码为200时，处理正常情况
+                            return response.text()  // 由于内容为空，这里使用text()方法
+                        } else if (response.status === 400) {
+                            // 状态码为400时，解析JSON错误信息
+                            return response.json().then(data => {
+                                throw new Error(data.Msg)
+                            });
+                        } else {
+                            // 其他状态码，抛出错误
+                            throw new Error('Unexpected status code: ' + response.status)
+                        }
+                    })
+                    .then(result => {
+                        addFriendModalHeading.innerText = '喜报';
+                        addFriendModalText.innerText = `已经发送申请，待对方同意后，你们将成为好友。`;
+                        new bootstrap.Modal(document.getElementById('add-friend-modal')).show();
+                    })
+                    .catch(error => {
+                        addFriendModalHeading.innerText = '错误';
+                        if (error.message === 'not_found') {
+                            addFriendModalText.innerText = '找不到这个用户！';
+                        } else if (error.message === 'offline') {
+                            addFriendModalText.innerText = '对方不在线，请等对方上线后再发送申请！';
+                        } else {
+                            addFriendModalText.innerText = error.message;
+                        }
+                        new bootstrap.Modal(document.getElementById('add-friend-modal')).show();
+                    });
+            } else {
+                // 不能添加自己
+                addFriendModalHeading.innerText = '错误';
+                addFriendModalText.innerText = '你不能添加自己为好友！';
+                new bootstrap.Modal(document.getElementById('add-friend-modal')).show();
+            }
         } else {
             // 输入的不是整数
             addFriendModalHeading.innerText = '错误';
