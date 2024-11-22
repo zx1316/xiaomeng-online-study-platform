@@ -663,7 +663,51 @@ def authenticated_only(f):
 
 @socketio.on('connect', namespace='/battle')
 def handle_connect():
-    print('Fuck you')
+    # 终于有用了
+    sid = request.sid
+    uid = online_users.get_uid_by_sid(sid)
+    for friend_battle in friend_battle_permitted:
+        if (uid == friend_battle.player1_uid) and (not friend_battle.player1_connected):
+            friend_battle.player1_sid = sid
+            friend_battle.player1_connected = True
+        elif (uid == friend_battle.player2_uid) and (not friend_battle.player2_connected):
+            friend_battle.player2_sid = sid
+            friend_battle.player2_connected = True
+        if friend_battle.player1_connected and friend_battle.player2_connected:
+            player1 = Player(friend_battle.player1_uid, friend_battle.player1_sid, friend_battle.subject)
+            player2 = Player(friend_battle.player2_uid, friend_battle.player2_sid, friend_battle.subject)
+            game = Game(player1, player2)
+            # 在这里注册room
+            new_room_id = f'{game.player1.sid}_{game.player2.sid}_{uuid.uuid4()}'
+            my_room.join_players(game.player1.sid, game.player2.sid, new_room_id)
+            Game_dict[new_room_id] = game
+            print('send match ok to ' + game.player1.username + " and " + game.player2.username)
+            socketio.emit('match_success', {
+                "Username": game.player2.username,
+                "Uid": game.player2.uid,
+                "Question": game.questions[game.player1.total].Question,
+                "SelectionA": game.questions[game.player1.total].SelectionA,
+                "SelectionB": game.questions[game.player1.total].SelectionB,
+                "SelectionC": game.questions[game.player1.total].SelectionC,
+                "SelectionD": game.questions[game.player1.total].SelectionD
+            }, to=game.player1.sid, namespace='/battle')
+            print(game.player2.username, game.player2.uid, game.questions[game.player1.total].Question
+                  , game.questions[game.player1.total].SelectionA,
+                  game.questions[game.player1.total].SelectionB,
+                  game.questions[game.player1.total].SelectionC,
+                  game.questions[game.player1.total].SelectionD,
+                  game.player1.sid)
+            print('player1.sid = ' + game.player1.sid)
+            socketio.emit('match_success', {
+                "Username": game.player1.username,
+                "Uid": game.player1.uid,
+                "Question": game.questions[game.player2.total].Question,
+                "SelectionA": game.questions[game.player2.total].SelectionA,
+                "SelectionB": game.questions[game.player2.total].SelectionB,
+                "SelectionC": game.questions[game.player2.total].SelectionC,
+                "SelectionD": game.questions[game.player2.total].SelectionD
+            }, to=game.player2.sid, namespace='/battle')
+            print('player2.sid = ' + game.player2.sid)
 
 
 @socketio.on('start', namespace='/battle')
@@ -980,6 +1024,8 @@ def handle_friend_disconnect():
     uid = current_user.Uid
     sid = request.sid
     online_users.remove_sid(uid, sid)
+    if friend_battle_request.get(uid) is not None:
+        friend_battle_request.pop(uid)
 
 
 @app.route('/add_friend', methods=['POST'])
@@ -1092,6 +1138,119 @@ def handle_friend_request_feedback(data):
         new_friend = Friend(Uid1=from_uid, Uid2=current_user.Uid)
         db.session.add(new_friend)
         db.session.commit()
+
+
+class FriendBattlePermitted:
+    def __init__(self, uid1, uid2, subject):
+        self.player1_uid = uid1
+        self.player2_uid = uid2
+        self.subject = subject
+        self.player1_connected = False
+        self.player2_connected = False
+        self.player1_sid = None
+        self.player2_sid = None
+
+
+friend_battle_permitted = []
+friend_battle_request = {}
+
+
+# 检查是否已在对战
+def check_game_dict(uid):
+    for game in Game_dict:
+        if game.player1_uid == uid or game.player2_uid == uid:
+            return True
+    return False
+
+
+@socketio.on('friend_battle_request', namespace='/friend')
+@authenticated_only
+def handle_friend_battle_request(data):
+    from_uid = current_user.Uid
+    from_sid = request.sid
+    from_user = User.query.filter_by(Uid=from_uid).first()
+    to_uid = data['Uid']
+    subject = data['Subject']
+    to_user = User.query.filter_by(Uid=to_uid).first()
+    friend = Friend.query.filter(
+        or_(
+            and_(Friend.Uid1 == from_uid, Friend.Uid2 == to_uid),
+            and_(Friend.Uid2 == to_uid, Friend.Uid1 == from_uid)
+        )
+    ).first()
+    # 你奶奶的抽象行为啊
+    # 首先查询是否已经在对战中了
+    if (Elo_match.check_exist(from_uid) or check_game_dict(from_uid)
+            or friend_battle_request.get(from_uid) is not None):
+        emit('friend_battle_permit', {
+            "Answer": "already_in_battle"
+        }, to=from_sid, namespace='/friend')
+    elif (Elo_match.check_exist(to_uid) or check_game_dict(to_uid)
+          or friend_battle_request.get(to_uid) is not None):
+        emit('friend_battle_permit', {
+            "Answer": "opponent_already_in_battle"
+        }, to=from_sid, namespace='/friend')
+    elif friend is None:
+        # not_friend
+        emit('friend_battle_permit', {
+            "Answer": "not_friend"
+        }, to=from_sid, namespace='/friend')
+    elif online_users.user_dict[to_uid] is None:
+        # offline
+        emit('friend_battle_permit', {
+            "Answer": "offline"
+        }, to=from_sid, namespace='/friend')
+    else:
+        friend_battle_request[from_uid] = subject
+        emit('friend_battle_request', {
+            "Uid": from_uid,
+            "Username": from_user.Username,
+            "Subject": subject
+        }, to=to_uid, namespace='/friend')
+
+
+@socketio.on('end_friend_battle_request', namespace='/friend')
+@authenticated_only
+def handle_end_friend_battle_request(data):
+    uid = current_user.Uid
+    if friend_battle_request.get(uid) is not None:
+        friend_battle_request.pop(uid)
+
+
+@socketio.on('friend_battle_feedback', namespace='/friend')
+@authenticated_only
+def handle_friend_battle_feedback(data):
+    answer = data['Answer']
+    from_uid = data['Uid']
+    to_sid = request.sid
+    to_uid = online_users.get_uid_by_sid(to_sid)
+    if answer == "yes":
+        if friend_battle_request.get(from_uid) is not None:
+            subject = friend_battle_request[from_uid]
+            new_friend_battle_permitted = FriendBattlePermitted(from_uid, to_uid, subject)
+            friend_battle_request.pop(from_uid)
+            friend_battle_permitted.append(new_friend_battle_permitted)
+            for from_sid in online_users.get_user_list(from_uid):
+                emit('friend_battle_permit', {
+                    "Answer": "yes"
+                }, to=from_sid, namespace='/friend')
+            emit('friend_battle_permit', {
+                "Answer": "yes"
+            }, to=to_sid)
+        else:
+            # 已经取消了或者断线了
+            emit('friend_battle_permit', {
+                "Answer": "no"
+            }, to=to_sid, namespace='/friend')
+    elif answer == "no":
+        if friend_battle_request.get(from_uid) is not None:
+            friend_battle_request.pop(from_uid)
+            for from_sid in online_users.get_user_list(from_uid):
+                emit('friend_battle_permit', {
+                    "Answer": "no"
+                }, to=from_sid, namespace='/friend')
+    else:
+        print("未定义行为")
 
 
 # static res
