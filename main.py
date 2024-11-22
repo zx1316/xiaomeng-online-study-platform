@@ -674,7 +674,7 @@ def handle_match_request(data):
     # 匹配相关
     # 匹配前需要检查用户是否已经在对战中了，一个用户一次只能进行一个对战
     for room_id, exist in Game_dict.items():
-        if exist.uid == player.uid:
+        if exist.player1.uid == player.uid or exist.player2.uid:
             # 该用户已经在一场对战中了
             emit('match_fail', {}, to=player.sid, namespace='/battle')
             disconnect(player.sid)
