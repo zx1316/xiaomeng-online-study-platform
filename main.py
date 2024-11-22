@@ -6,9 +6,10 @@ import json
 import os
 from functools import wraps
 
-from flask import Flask, redirect, request, url_for, jsonify, send_from_directory, abort
+from flask import Flask, redirect, request, url_for, jsonify, send_from_directory, abort, make_response
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from jsonschema import validate
+from sqlalchemy import or_
 from sqlalchemy.sql import func
 from flask_socketio import SocketIO, emit, disconnect
 from werkzeug.exceptions import NotFound
@@ -638,6 +639,7 @@ class My_room:
         else:
             return None
 
+
 my_room = My_room()
 
 
@@ -653,17 +655,24 @@ def authenticated_only(f):
     return wrapped
 
 
-@socketio.on('connect')
+@socketio.on('connect', namespace='/battle')
 def handle_connect():
     print('Fuck you')
 
 
-@socketio.on('start')
+@socketio.on('start', namespace='/battle')
 @authenticated_only
 def handle_match_request(data):
     player = Player(uid=current_user.Uid, subject=data['Subject'], sid=request.sid)
     print(player.username + ' want ' + player.subject + ' whose sid is ' + player.sid)
     # 匹配相关
+    # 匹配前需要检查用户是否已经在对战中了，一个用户一次只能进行一个对战
+    for room_id, exist in Game_dict.items():
+        if exist.Uid == player.uid:
+            # 该用户已经在一场对战中了
+            emit('match_fail', {}, to=player.sid, namespace='/battle')
+            disconnect(player.sid)
+            return
     Elo_match.join_new_player(player)
     socketio.start_background_task(target=zxx_matcher)
 
@@ -696,7 +705,7 @@ def get_model(subject):
     return subject_to_model[subject]
 
 
-@socketio.on('submit_answer')
+@socketio.on('submit_answer', namespace='/battle')
 @authenticated_only
 def handle_submit_answer(data):
     answer = data['Answer']
@@ -797,7 +806,7 @@ def handle_submit_answer(data):
         disconnect(game.player2.sid)
 
 
-@socketio.on('disconnect')
+@socketio.on('disconnect', '/battle')
 def handle_disconnect():
     print(request.sid + " is disconnected")
     sid = request.sid
@@ -891,6 +900,44 @@ def zxx_matcher():
     print('zxx finished')
 
 
+# --- Friend Module  ---
+class Online_users:
+    def __init__(self):
+        self.sid2uid_dict = {}
+        self.uid2sid_dict = {}
+
+    def join_user(self, uid, sid):
+        self.sid2uid_dict[sid] = uid
+        self.uid2sid_dict[uid] = sid
+
+    def get_uid_by_sid(self, sid):
+        return self.sid2uid_dict.get(sid)
+
+    def get_sid_by_uid(self, uid):
+        return self.uid2sid_dict.get(uid)
+
+    def remove_user_by_uid(self, uid):
+        print('remove : ' + uid)
+        if self.uid2sid_dict.get(uid):
+            sid = self.uid2sid_dict[uid]
+            self.uid2sid_dict.pop(uid)
+            self.sid2uid_dict.pop(sid)
+        else:
+            print('no such user')
+
+    def remove_user_by_sid(self, sid):
+        print('remove : ' + sid)
+        if self.sid2uid_dict.get(sid):
+            uid = self.sid2uid_dict.get(sid)
+            self.sid2uid_dict.pop(sid)
+            self.uid2sid_dict.pop(uid)
+        else:
+            print('no such user')
+
+
+online_users = Online_users()
+
+
 @app.route('/change_avatar', methods=['POST'])
 @login_required
 @student_required
@@ -915,6 +962,104 @@ def change_avatar():
         return jsonify({"Msg": f"Failed to save avatar: {str(e)}"}), 400
 
     return '', 200
+
+
+@socketio.on('connect', namespace='/friend')
+@authenticated_only
+def handle_friend_connect():
+    uid = current_user.Uid
+    sid = request.sid
+    online_users.join_user(uid, sid)
+
+
+@app.route('add_friend', methods=['POST'])
+@login_required
+@student_required
+def add_friend():
+    json_data = request.get_json()
+    to_uid = json_data.get('Uid')
+    # 检查Uid是否在
+    user = User.query.filter_by(Uid=to_uid).first()
+    if user is None:
+        return jsonify({"Msg": "not_found"}), 400
+    elif online_users.uid2sid_dict.get(to_uid) is None:
+        return jsonify({"Msg": "offline"}), 400
+    else:
+        # 可以理会
+        to_sid = online_users.get_sid_by_uid(to_uid)
+        from_user = User.query.filter_by(Uid=current_user.Uid).first()
+        emit('friend_request', {
+            "Uid": from_user.Uid,
+            "Username": from_user.username
+        }, to=to_sid)
+        return 200
+
+
+@app.route('delete_friend', methods=['POST'])
+@login_required
+@student_required
+def delete_friend():
+    json_data = request.get_json()
+    to_uid = json_data.get('Uid')
+    from_uid = current_user.Uid
+    friend = Friend.query.filter_by(
+        or_(
+            Friend.Uid1 == to_uid, Friend.Uid2 == from_uid,
+            Friend.Uid1 == from_uid, Friend.Uid2 == to_uid
+        )).first()
+    if friend is None:
+        return 400
+    else:
+        return 200
+
+
+@app.route('friend_list', methods=['POST'])
+@login_required
+@student_required
+def friend_list():
+    json_data = request.get_json()
+    page = json_data.get('Page')
+    size = json_data.get('Size')
+    user_id = current_user.Uid
+    friends_relations = Friend.query.filter(
+        or_(
+            Friend.Uid1 == user_id,
+            Friend.Uid2 == user_id
+        )
+    ).all()
+
+    # 创建一个空列表来存储朋友信息
+    friends_list = []
+
+    # 遍历朋友关系并获取朋友信息
+    for relation in friends_relations:
+        # 确定朋友是Uid1还是Uid2
+        friend_uid = relation.Uid2 if relation.Uid1 == user_id else relation.Uid1
+        friend_user = User.query.get(friend_uid)
+
+        # 添加朋友信息到列表
+        friends_list.append({
+            "Username": friend_user.username,
+            "Uid": friend_uid
+        })
+
+    # 构造并返回最终的JSON响应
+    response = {
+        "total": len(friends_list),
+        "friends": friends_list
+    }
+    return jsonify(response)
+
+
+@socketio.on('friend_request_feedback', namespace='/friend')
+@authenticated_only
+def handle_friend_request_feedback(data):
+    from_uid = data['Uid']
+    from_user = User.query.filter_by(Uid=from_uid).first()
+    if from_user is not None:
+        new_friend = Friend(Uid1=from_uid, Uid2=current_user.Uid)
+        db.session.add(new_friend)
+        db.session.commit()
 
 
 # static res

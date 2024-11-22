@@ -142,10 +142,11 @@ def join_new_player(player):
     lock.acquire()
     try:
         print(f"Joining {player.username}")
-        for old_player in player_list[player.subject]:
-            if old_player.uid == player.uid:
-                print('相同玩家')
-                return
+        for subject in player_list:
+            for old_player in player_list[subject]:
+                if old_player.uid == player.uid:
+                    print('相同玩家')
+                    return
 
         player_list[player.subject].append(player)
         for subject, players in player_list.items():
