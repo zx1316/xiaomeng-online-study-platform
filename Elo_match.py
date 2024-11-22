@@ -138,6 +138,14 @@ def elo_calculater(elo_a, elo_b, winner, k=32):
     return delta_a, delta_b
 
 
+def check_exist(uid):
+    for subject in player_list:
+        for player in player_list[subject]:
+            if player.uid == uid:
+                return True
+    return False
+
+
 def join_new_player(player):
     lock.acquire()
     repetition = True
