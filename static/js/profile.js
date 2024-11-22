@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let defaultSubject = '';    // 默认选中的科目
     let currentPage = 1, maxPage = 1;
     let friendObj;
-    const socket = io('/friend');
+    let toDeleteUid;
 
     const selfUid = document.getElementById('self-uid');
     const selfName = document.getElementById('self-name');
@@ -16,6 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const friendPage = document.getElementById('friend-page');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
+    const deleteFriendModalText = document.getElementById('delete-friend-modal-text');
+    const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
 
     function getCookie(name) {
         const cookieArray = document.cookie.split(';'); // 分割cookie字符串
@@ -49,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <div class="dropdown-toggle px-2 cursor-pointer" data-bs-toggle="dropdown"></div>
                                     <ul class="dropdown-menu">
                                         <li class="dropdown-item cursor-pointer">发起对战</li>
-                                        <li class="dropdown-item cursor-pointer text-danger" id="delete-${friend.Uid}">删除</li>
+                                        <li class="dropdown-item cursor-pointer text-danger delete-friend" data-username="${friend.Username}" data-uid="${friend.Uid}">删除</li>
                                     </ul>
                                 </div>
                             </div>
@@ -72,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <div class="dropdown-toggle px-2 cursor-pointer" data-bs-toggle="dropdown"></div>
                                     <ul class="dropdown-menu">
                                         <li class="dropdown-item cursor-pointer">发起对战</li>
-                                        <li class="dropdown-item cursor-pointer text-danger" id="delete-${friend.Uid}">删除</li>
+                                        <li class="dropdown-item cursor-pointer text-danger delete-friend" data-username="${friend.Username}" data-uid="${friend.Uid}">删除</li>
                                     </ul>
                                 </div>
                             </div>
@@ -98,6 +100,14 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             nextBtn.classList.remove('visually-hidden');
         }
+        // 设置删除好友事件监听
+        document.querySelectorAll('.delete-friend').forEach((el) => {
+            el.addEventListener('click', () => {
+                toDeleteUid = el.getAttribute('data-uid');
+                deleteFriendModalText.innerText = `您确定要从好友列表中删除${el.getAttribute('data-username')}（UID：${el.getAttribute('data-uid')}）吗？`;
+                new bootstrap.Modal(document.getElementById('delete-friend-modal')).show();
+            });
+        });
     }
 
     selfName.innerText = getCookie('username');
@@ -238,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         .then(result => {
                             friendObj = result;
                             updateFriendsUI();
-                        })
+                        });
                 }
             });
 
@@ -254,7 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         .then(result => {
                             friendObj = result;
                             updateFriendsUI();
-                        })
+                        });
                 }
             });
 
@@ -310,5 +320,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('Error: ' + error);
             });
         }
+    });
+
+    // 点击确认删除好友
+    confirmDeleteBtn.addEventListener('click', () => {
+        fetch('/delete_friend', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: `{"Uid":${toDeleteUid}}`
+        })
+            .then(response => response.text())
+            .then(result => {
+                if (friendObj.Friends.length <= 1 && currentPage > 1) {
+                    // 跳到上一页
+                    currentPage--;
+                }
+                // 再查询好友
+                fetch('/friend_list', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: `{"Page":${currentPage},"Size":10}`
+                })
+                    .then(response => response.json())
+                    .then(result => {
+                        friendObj = result;
+                        updateFriendsUI();
+                    });
+            });
     });
 });

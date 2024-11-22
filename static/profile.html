@@ -167,6 +167,22 @@
         </div>
     </div>
 </div>
+<!--删除好友模态框-->
+<div class="modal fade" id="delete-friend-modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">警告</h4>
+                <button type="button" class="btn-close" id="close-ok-btn" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="delete-friend-modal-text"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal" id="confirm-delete-btn">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
 <script src="https://cdn.staticfile.net/socket.io/4.7.4/socket.io.min.js"></script>
 <script src="js/bootstrap.bundle.min.js"></script>
 <script src="js/update-personal.js"></script>
