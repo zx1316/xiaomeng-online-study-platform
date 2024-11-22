@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 friendBattleFlag = true;
                 new bootstrap.Modal(document.getElementById('wait-friend-battle-modal')).show();
                 // 发送请求
-                socket.emit('friend_battle_request', {Uid: el.getAttribute('data-uid'), Subject: selectedSubject});
+                socket.emit('friend_battle_request', {Uid: Number(el.getAttribute('data-uid')), Subject: selectedSubject});
             });
         });
     }
@@ -456,7 +456,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.open('battle-friend.html', '_blank');
         } else {
             // 对战个勾八
-            waitingImg.src = 'img/lose.gif';
+            waitingImg.src = 'img/lose.png';
             waitFriendBattleBtn.className = 'btn btn-primary';
             waitFriendBattleBtn.innerText = '关闭';
             if (data.Answer === 'offline') {
