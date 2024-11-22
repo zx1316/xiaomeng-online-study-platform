@@ -140,13 +140,15 @@ def elo_calculater(elo_a, elo_b, winner, k=32):
 
 def join_new_player(player):
     lock.acquire()
+    repetition = True
     try:
         print(f"Joining {player.username}")
         for subject in player_list:
             for old_player in player_list[subject]:
                 if old_player.uid == player.uid:
                     print('相同玩家')
-                    return False
+                    repetition = False
+                    return
 
         player_list[player.subject].append(player)
         for subject, players in player_list.items():
@@ -154,7 +156,7 @@ def join_new_player(player):
             players.sort(key=lambda exist: exist.elo if exist.elo is not None else float('-inf'), reverse=True)
     finally:
         lock.release()
-        return True
+        return repetition
 
 
 def remove_player(old_player):
