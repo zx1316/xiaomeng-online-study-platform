@@ -183,22 +183,6 @@
         </div>
     </div>
 </div>
-<!--好友请求模态框-->
-<div class="modal fade" id="new-friend-modal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title">新朋友</h4>
-                <button type="button" class="btn-close" id="close-ok-btn" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="new-friend-modal-text"></div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">忽略</button>
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="confirm-add-friend-btn">同意</button>
-            </div>
-        </div>
-    </div>
-</div>
 <!--添加好友信息模态框-->
 <div class="modal fade" id="add-friend-modal" tabindex="-1">
     <div class="modal-dialog">
@@ -232,6 +216,22 @@
         </div>
     </div>
 </div>
+<!--好友请求模态框-->
+<div class="modal fade" id="new-friend-modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">新朋友</h4>
+                <button type="button" class="btn-close" id="close-ok-btn" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="new-friend-modal-text"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">忽略</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="confirm-add-friend-btn">同意</button>
+            </div>
+        </div>
+    </div>
+</div>
 <!--好友对战请求模态框-->
 <div class="modal fade" id="friend-battle-request-modal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
@@ -247,7 +247,6 @@
         </div>
     </div>
 </div>
-
 <script src="js/socket.io.min.js"></script>
 <script src="js/bootstrap.bundle.min.js"></script>
 <script src="js/update-personal.js"></script>

@@ -61,11 +61,7 @@
     </ul>
 </div>
 
-<div id="main-display" class="w-100 m-auto d-flex flex-column align-items-center" style="max-width: 460px">
-    <img src="img/matching.gif" alt="matching" width="192">
-    <h2 id="waiting-text" class="pt-3">正在匹配旗鼓相当的对手.</h2>
-    <span>若想终止匹配，请关闭标签页</span>
-</div>
+<div id="main-display" class="w-100 m-auto d-flex flex-column align-items-center" style="max-width: 460px"></div>
 
 <div class="modal fade" id="warning-modal" tabindex="-1">
     <div class="modal-dialog">
@@ -75,7 +71,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <span>若选择直接回顾，您将无法得知本场对战的胜负情况，分数将在对手作答完毕后更新。</span>
+                <span>若选择直接回顾，您将无法得知本场对战的胜负情况，段位赛分数将在对手作答完毕后更新。</span>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">&ensp;再等等&ensp;</button>
@@ -84,6 +80,8 @@
         </div>
     </div>
 </div>
+<audio id="man-sound" src="sound/man.mp3"></audio>
+<audio id="win-sound" src="sound/win.mp3"></audio>
 <script src="https://cdn.staticfile.net/socket.io/4.7.4/socket.io.min.js"></script>
 <script src="js/bootstrap.bundle.min.js"></script>
 <script src="js/battle.js"></script>

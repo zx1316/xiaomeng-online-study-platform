@@ -1053,23 +1053,33 @@ def handle_friend_disconnect():
 def add_friend():
     json_data = request.get_json()
     to_uid = json_data.get('Uid')
-    if to_uid == current_user.Uid:
+    from_uid = current_user.Uid
+    # 检查自己添加自己
+    if to_uid == from_uid:
         return jsonify({"Msg": "add_yourself"}), 400
-    # 检查Uid是否在
+    # 检查Uid是否在，user是被添加的用户
     user = User.query.filter_by(Uid=to_uid).first()
     if user is None:
         return jsonify({"Msg": "not_found"}), 400
-    elif online_users.user_dict.get(to_uid) is None:
+    # 检查是否已经是好友
+    friend = Friend.query.filter(
+        or_(
+            and_(Friend.Uid1 == to_uid, Friend.Uid2 == from_uid),
+            and_(Friend.Uid1 == from_uid, Friend.Uid2 == to_uid)
+        )).first()
+    if friend is not None:
+        return jsonify({"Msg": "already_friend"}), 400
+    # 检查对方是否在线
+    if online_users.user_dict.get(to_uid) is None:
         return jsonify({"Msg": "offline"}), 400
-    else:
-        # 可以理会
-        from_user = User.query.filter_by(Uid=current_user.Uid).first()
-        for to_sid in online_users.get_user_list(to_uid):
-            emit('friend_request', {
-                "Uid": from_user.Uid,
-                "Username": from_user.Username
-            }, to=to_sid, namespace='/friend')
-        return Response(status=200)
+    # 可以理会
+    from_user = User.query.filter_by(Uid=current_user.Uid).first()
+    for to_sid in online_users.get_user_list(to_uid):
+        emit('friend_request', {
+            "Uid": from_user.Uid,
+            "Username": from_user.Username
+        }, to=to_sid, namespace='/friend')
+    return Response(status=200)
 
 
 @app.route('/delete_friend', methods=['POST'])
@@ -1084,12 +1094,11 @@ def delete_friend():
             and_(Friend.Uid1 == to_uid, Friend.Uid2 == from_uid),
             and_(Friend.Uid1 == from_uid, Friend.Uid2 == to_uid)
         )).first()
-    print(friend)
-    db.session.delete(friend)
-    db.session.commit()
     if friend is None:
         return Response(status=400)
     else:
+        db.session.delete(friend)
+        db.session.commit()
         return Response(status=200)
 
 
@@ -1155,8 +1164,11 @@ def handle_friend_request_feedback(data):
     from_user = User.query.filter_by(Uid=from_uid).first()
     if from_user is not None:
         new_friend = Friend(Uid1=from_uid, Uid2=current_user.Uid)
-        db.session.add(new_friend)
-        db.session.commit()
+        try:
+            db.session.add(new_friend)
+            db.session.commit()
+        except:
+            pass
 
 
 class FriendBattlePermitted:
@@ -1274,6 +1286,11 @@ def handle_friend_battle_feedback(data):
 
 
 # static res
+@app.route('/sound/<path:filename>')
+def send_sound(filename):
+    return send_from_directory(os.path.join(app.config['STATIC_FOLDER'], 'sound'), path=filename)
+
+
 @app.route('/js/<path:filename>')
 def send_js(filename):
     return send_from_directory(os.path.join(app.config['STATIC_FOLDER'], 'js'), path=filename)

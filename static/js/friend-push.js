@@ -50,6 +50,6 @@ socket.on('friend_battle_request', (data) => {
 
 socket.on('friend_battle_permit', (data) => {
     if (data.Answer === 'yes') {
-        window.open('battle-friend.html', '_blank');
+        window.open('battle.html?friend=1', '_blank');
     }
 });

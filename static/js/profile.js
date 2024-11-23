@@ -419,6 +419,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             addFriendModalText.innerText = '找不到这个用户！';
                         } else if (error.message === 'offline') {
                             addFriendModalText.innerText = '对方不在线，请等对方上线后再发送申请！';
+                        } else if (error.message === 'already_friend') {
+                            addFriendModalText.innerText = '你们已经是好友了！';
                         } else {
                             addFriendModalText.innerText = error.message;
                         }

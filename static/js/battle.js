@@ -4,16 +4,19 @@ tooltipTriggerList.map(function (tooltipTriggerEl) {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    let current = 1;
-    let opponentCurrent = 1;
+    let timer;
+    let current = 1;            // 自己的进度
+    let opponentCurrent = 1;    // 对手的进度
     let opponentName;
     let pendingQuestion;
     const questionArr = [];
-    let reviewCurrent = 1;
+    let reviewCurrent = 1;      // 回顾进度
     let countdown;
 
     const mainDisplay = document.getElementById('main-display');
     const continueReviewBtn = document.getElementById('continue-review-btn');
+    const winSound = document.getElementById('win-sound');
+    const manSound = document.getElementById('man-sound');
 
     function getCookie(name) {
         const cookieArray = document.cookie.split(';'); // 分割cookie字符串
@@ -244,22 +247,29 @@ document.addEventListener('DOMContentLoaded', () => {
         updateReviewUI();
     }
 
-    const timer = setInterval(() => {
-        const waitingText = document.getElementById('waiting-text');
-        if (waitingText.innerText.substring(11) === '.') {
-            waitingText.innerText = '正在匹配旗鼓相当的对手..';
-        } else if (waitingText.innerText.substring(11) === '..') {
-            waitingText.innerText = '正在匹配旗鼓相当的对手...';
-        } else {
-            waitingText.innerText = '正在匹配旗鼓相当的对手.';
-        }
-    }, 500);
-
     const socket = io('/battle');
+    const paras = new URLSearchParams(window.location.search);
+    if (!paras.has('friend')) {
+        mainDisplay.innerHTML = `
+            <img src="img/matching.gif" alt="matching" width="192">
+            <h2 id="waiting-text" class="pt-3">正在匹配旗鼓相当的对手.</h2>
+            <span>若想终止匹配，请关闭标签页</span>
+        `;
+        timer = setInterval(() => {
+            const waitingText = document.getElementById('waiting-text');
+            if (waitingText.innerText.substring(11) === '.') {
+                waitingText.innerText = '正在匹配旗鼓相当的对手..';
+            } else if (waitingText.innerText.substring(11) === '..') {
+                waitingText.innerText = '正在匹配旗鼓相当的对手...';
+            } else {
+                waitingText.innerText = '正在匹配旗鼓相当的对手.';
+            }
+        }, 500);
 
-    socket.on('connect', () => {
-        socket.emit('start', {Subject: new URLSearchParams(window.location.search).get('subject')});
-    });
+        socket.on('connect', () => {
+            socket.emit('start', {Subject: paras.get('subject')});
+        });
+    }
 
     // 已经开匹配了，不能同时进行两场对战
     socket.on('match_fail', () => {
@@ -272,7 +282,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // 服务器匹配成功
     socket.on('match_success', (data) => {
         // 匹配成功，转换状态至对战
-        clearInterval(timer);
+        if (!paras.has('friend')) {
+            clearInterval(timer);
+        }
         opponentName = data.Username;
         // 删掉全屏居中样式
         document.documentElement.classList.remove("h-100");
@@ -462,6 +474,11 @@ document.addEventListener('DOMContentLoaded', () => {
             add_width_progress.style.width = "10%";
             add_width_progress.appendChild(add_style_progress);
             opponentProgressStack.appendChild(add_width_progress);
+        } else {
+            // 对方做完了，且自己没做完，播放音效
+            if (current < 10) {
+                manSound.play();
+            }
         }
     });
 
@@ -489,6 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span>${opponentName}: <span class="text-primary">-${Math.round(-data.Opponent)}</span></span>
                 <button id="review-btn" class="btn btn-primary mt-3" style="min-width: 5em">回顾</button>
             `;
+            winSound.play();
         } else {
             // 你失败
             resultDiv.innerHTML = `
