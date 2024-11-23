@@ -452,7 +452,7 @@ document.addEventListener('DOMContentLoaded', () => {
         friendBattleFlag = false;
         if (data.Answer === 'yes') {
             // 可以对战，开新窗口吧
-            new bootstrap.Modal(document.getElementById('add-friend-modal')).hide();
+            new bootstrap.Modal(document.getElementById('wait-friend-battle-modal')).hide();
             window.open('battle-friend.html', '_blank');
         } else {
             // 对战个勾八
