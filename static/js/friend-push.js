@@ -43,7 +43,7 @@ socket.on('friend_battle_request', (data) => {
     if (!newBattleFlag) {
         newBattleFlag = true;
         pendingBattleUid = data.Uid;
-        friendBattleRequestModalText.innerText = `${data.Username}（UID：${data.Uid}）想与你进行对战，科目为《${data.Subject}》，是否接受？<br>若点击接受后无反应，说明请求超时。`;
+        friendBattleRequestModalText.innerHTML = `${data.Username}（UID：${data.Uid}）想与你进行对战，科目为《${data.Subject}》，是否接受？<br>若点击接受后无反应，说明请求超时。`;
         new bootstrap.Modal(document.getElementById('friend-battle-request-modal')).show();
     }
 });
