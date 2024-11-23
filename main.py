@@ -1176,8 +1176,8 @@ friend_battle_request = {}
 
 # 检查是否已在对战
 def check_game_dict(uid):
-    for game in Game_dict:
-        if game.player1_uid == uid or game.player2_uid == uid:
+    for game in Game_dict.values():
+        if game.player1.uid == uid or game.player2.uid == uid:
             return True
     return False
 
