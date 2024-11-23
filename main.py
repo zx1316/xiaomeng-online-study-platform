@@ -1059,7 +1059,7 @@ def add_friend():
     user = User.query.filter_by(Uid=to_uid).first()
     if user is None:
         return jsonify({"Msg": "not_found"}), 400
-    elif online_users.user_dict[to_uid] is None:
+    elif online_users.user_dict.get(to_uid) is None:
         return jsonify({"Msg": "offline"}), 400
     else:
         # 可以理会
