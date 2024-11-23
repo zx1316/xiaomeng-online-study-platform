@@ -441,14 +441,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (friendBattleFlag) {
             // 如果正在等待对方接受
             socket.emit('end_friend_battle_request');   // 发送终止对战
-            clearInterval(friendBattleFlag);
+            clearInterval(waitingTimer);
             friendBattleFlag = false;
         }
     });
 
     // 收到对战请求许可
     socket.on('friend_battle_permit', (data) => {
-        clearInterval(friendBattleFlag);
+        clearInterval(waitingTimer);
         friendBattleFlag = false;
         if (data.Answer === 'yes') {
             // 可以对战，开新窗口吧
