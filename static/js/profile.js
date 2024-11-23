@@ -28,6 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const waitingText = document.getElementById('waiting-text');
     const waitFriendBattleBtn = document.getElementById('wait-friend-battle-btn');
 
+    const waitFriendBattleModal = new bootstrap.Modal(document.getElementById('wait-friend-battle-modal'));
+
     function getCookie(name) {
         const cookieArray = document.cookie.split(';'); // 分割cookie字符串
         // 遍历cookie数组
@@ -53,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <img src="img/user/${friend.Uid}.png" alt="${friend.Uid}" width="40" height="40" class="rounded-circle">
                             <div class="d-flex flex-grow-1 justify-content-between align-items-center">
                                 <div class="d-flex flex-column">
-                                    <span>${friend.Username} <span class="badge bg-primary">${Math.round(friend.Elo[selectedSubject])}</span> <span class="badge bg-success">#${friend.Rank[selectedSubject]}</span></span>
+                                    <span>${friend.Username} <span class="badge bg-primary">${Math.round(friend.Elo[selectedSubject])}</span>${friend.Rank[selectedSubject] < 10000 ? ` <span class="badge bg-success">#${friend.Rank[selectedSubject]}</span>` : ''}</span>
                                     <span class="very-small opacity-75">UID：${friend.Uid}</span>
                                 </div>
                                 <div class="dropdown">
@@ -135,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }, 500);
                 friendBattleFlag = true;
-                new bootstrap.Modal(document.getElementById('wait-friend-battle-modal')).show();
+                waitFriendBattleModal.show();
                 // 发送请求
                 socket.emit('friend_battle_request', {Uid: Number(el.getAttribute('data-uid')), Subject: selectedSubject});
             });
@@ -452,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
         friendBattleFlag = false;
         if (data.Answer === 'yes') {
             // 可以对战，开新窗口吧
-            new bootstrap.Modal(document.getElementById('wait-friend-battle-modal')).hide();
+            waitFriendBattleModal.hide();
             window.open('battle-friend.html', '_blank');
         } else {
             // 对战个勾八
