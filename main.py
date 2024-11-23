@@ -664,9 +664,8 @@ def authenticated_only(f):
 @socketio.on('connect', namespace='/battle')
 def handle_connect():
     # 终于有用了
+    uid = current_user.Uid
     sid = request.sid
-    uid = online_users.get_uid_by_sid(sid)
-
     for friend_battle in friend_battle_permitted:
         if (uid == friend_battle.player1_uid) and (not friend_battle.player1_connected):
             friend_battle.player1_sid = sid
@@ -678,7 +677,7 @@ def handle_connect():
             print('friend battle is generating')
             player1 = Player(friend_battle.player1_uid, friend_battle.player1_sid, friend_battle.subject)
             player2 = Player(friend_battle.player2_uid, friend_battle.player2_sid, friend_battle.subject)
-            game = Game(player1, player2)
+            game = Game(player1, player2, "2")
             # 在这里注册room
             new_room_id = f'{game.player1.sid}_{game.player2.sid}_{uuid.uuid4()}'
             my_room.join_players(game.player1.sid, game.player2.sid, new_room_id)
@@ -711,6 +710,12 @@ def handle_connect():
             }, to=game.player2.sid, namespace='/battle')
             print('player2.sid = ' + game.player2.sid)
             friend_battle_permitted.remove(friend_battle)
+
+
+@socketio.on('friend_battle_connect', namespace='/battle')
+@authenticated_only
+def handle_friend_battle_connect(data):
+    pass
 
 
 @socketio.on('start', namespace='/battle')
@@ -826,10 +831,7 @@ def handle_submit_answer(data):
         model = get_model(game.player1.subject)
         player1_status = model.query.filter_by(Uid=game.player1.uid).first()
         player2_status = model.query.filter_by(Uid=game.player2.uid).first()
-        player1_status.Total += game.player1.total
-        player1_status.Right += game.player1.right
-        player2_status.Total += game.player2.total
-        player2_status.Right += game.player2.right
+
         # 判断胜负
         if game.player1.right > game.player2.right:
             winner = 0
@@ -841,9 +843,14 @@ def handle_submit_answer(data):
             else:
                 winner = 1
         elo_delta_a, elo_delta_b = Elo_match.elo_calculater(game.player1.elo, game.player2.elo, winner)
-        player1_status.Elo = game.player1.elo + elo_delta_a
-        player2_status.Elo = game.player2.elo + elo_delta_b
-        db.session.commit()
+        if game.game_type == 1:
+            player1_status.Total += game.player1.total
+            player1_status.Right += game.player1.right
+            player2_status.Total += game.player2.total
+            player2_status.Right += game.player2.right
+            player1_status.Elo = game.player1.elo + elo_delta_a
+            player2_status.Elo = game.player2.elo + elo_delta_b
+            db.session.commit()
         # 发送结果
         emit('match_result', {
             "Self": elo_delta_a,
@@ -890,17 +897,20 @@ def handle_disconnect():
         model = get_model(player.subject)
         player_status = model.query.filter_by(Uid=player.uid).first()
         opponent_status = model.query.filter_by(Uid=opponent.uid).first()
-        player_status.Total += player.total
-        player_status.Right += player.right
-        opponent_status.Total += opponent.total
-        opponent_status.Right += opponent.right
+
         elo_delta_a, elo_delta_b = Elo_match.elo_calculater(player.elo, opponent.elo, 1)
         print(player.elo, opponent.elo)
         print(player.username, elo_delta_a, opponent.username, elo_delta_b)
-        player_status.Elo = player.elo + elo_delta_a
-        opponent_status.Elo = opponent.elo + elo_delta_b
+        if game.game_type == 1:
+            player_status.Total += player.total
+            player_status.Right += player.right
+            opponent_status.Total += opponent.total
+            opponent_status.Right += opponent.right
+            player_status.Elo = player.elo + elo_delta_a
+            opponent_status.Elo = opponent.elo + elo_delta_b
+            db.session.commit()
         print(player_status.Elo, opponent_status.Elo)
-        db.session.commit()
+
         # 发送结果
         emit('match_result', {
             "Self": elo_delta_b,
@@ -1184,7 +1194,7 @@ def handle_friend_battle_request(data):
     friend = Friend.query.filter(
         or_(
             and_(Friend.Uid1 == from_uid, Friend.Uid2 == to_uid),
-            and_(Friend.Uid2 == to_uid, Friend.Uid1 == from_uid)
+            and_(Friend.Uid1 == to_uid, Friend.Uid2 == from_uid)
         )
     ).first()
     # 你奶奶的抽象行为啊
@@ -1374,6 +1384,8 @@ def signup_page():
 @app.route('/battle-friend.html')
 def battle_friend_page():
     return send_from_directory(app.config['STATIC_FOLDER'], 'battle-friend.html')
+
+
 @app.route('/')
 def index():
     return redirect(url_for('login_page'))

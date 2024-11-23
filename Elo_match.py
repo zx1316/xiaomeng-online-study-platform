@@ -64,11 +64,13 @@ class Player:
 
 
 class Game:
-    def __init__(self, player1, player2):
+    def __init__(self, player1, player2, game_type):
         self.player1 = player1
         self.player2 = player2
         self.questions = None
         self.get_questions()
+        self.game_type = game_type
+        # 1 是匹配对战 2是好友对战
 
     def get_questions(self):
         num_questions = 10
@@ -115,7 +117,7 @@ def zxx_worker():
                                 player_list[subject].remove(player1)
                                 player_list[subject].remove(player2)
                                 print(player1.username + ' and ' + player2.username + ' are ready to start a battle.')
-                                new_game = Game(player1, player2)
+                                new_game = Game(player1, player2, 1)
                                 Game_queue.append(new_game)
             finally:
                 lock.release()

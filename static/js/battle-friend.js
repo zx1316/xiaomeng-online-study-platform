@@ -246,6 +246,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const socket = io('/battle');
 
+
+
     // 服务器匹配成功
     socket.on('match_success', (data) => {
         // 匹配成功，转换状态至对战
