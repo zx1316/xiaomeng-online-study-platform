@@ -457,7 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.Answer === 'yes') {
             // 可以对战，开新窗口吧
             waitFriendBattleModal.hide();
-            window.open('battle-friend.html', '_blank');
+            window.open('battle.html?friend=1', '_blank');
         } else {
             // 对战个勾八
             waitingImg.src = 'img/lose.png';

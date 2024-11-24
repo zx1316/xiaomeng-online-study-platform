@@ -1398,11 +1398,6 @@ def signup_page():
     return send_from_directory(app.config['STATIC_FOLDER'], 'signup.html')
 
 
-@app.route('/battle-friend.html')
-def battle_friend_page():
-    return send_from_directory(app.config['STATIC_FOLDER'], 'battle-friend.html')
-
-
 @app.route('/')
 def index():
     return redirect(url_for('login_page'))
